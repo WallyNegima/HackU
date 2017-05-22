@@ -1,27 +1,27 @@
 {
   "project_info": {
-    "project_number": "719521260543",
-    "firebase_url": "https://paripigrass.firebaseio.com",
-    "project_id": "paripigrass",
-    "storage_bucket": "paripigrass.appspot.com"
+    "project_number": "363026237293",
+    "firebase_url": "https://paripigrass-eb976.firebaseio.com",
+    "project_id": "paripigrass-eb976",
+    "storage_bucket": "paripigrass-eb976.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:719521260543:android:25c68bcb19dd666b",
+        "mobilesdk_app_id": "1:363026237293:android:25c68bcb19dd666b",
         "android_client_info": {
           "package_name": "com.example.wally_nagama.paripigrass"
         }
       },
       "oauth_client": [
         {
-          "client_id": "719521260543-lvq2674b0inpu600dutqmmbbe1r5pipb.apps.googleusercontent.com",
+          "client_id": "363026237293-n625b06gduu0r4qh7f99bbcf6mavn0fs.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD_c0aOlA3hHDuW0sCCHrYWNsp8fX4kDY0"
+          "current_key": "AIzaSyDB0BsGOFvJ6WtUTWIwZ3pbUE_FxZTnogI"
         }
       ],
       "services": {

@@ -9,6 +9,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +26,9 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference("message");
+    DatabaseReference myRef = database.getReference("age");
+    Button button;
+    EditText editText;
 
     // 音声認識で使うよーんwwwwww
     private TextView txvAction;
@@ -44,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        button = (Button)findViewById(R.id.button);
+        editText = (EditText)findViewById(R.id.edittext);
+
         myRef.setValue("Hello, World!");
 
 
@@ -141,6 +150,14 @@ public class MainActivity extends AppCompatActivity {
 
         // 認識後
         checkResult.returnCharacter();
+
+        button.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                myRef.setValue(editText.getText().toString());
+            }
+        });
+
 
     }
 
