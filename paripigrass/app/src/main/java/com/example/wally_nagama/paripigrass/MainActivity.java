@@ -17,6 +17,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private TextView txvAction;
+    private TextView txvRec;
     private static final int REQUEST_CODE = 0;
 
 
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
         // へーへーボタン（同意を表す貴重なボタン）
         txvAction = (TextView)findViewById(R.id.amin_txvAction);
+        txvRec = (TextView)findViewById(R.id.txv_recog);
 
         //へーへーボタンリスナー
         findViewById(R.id.amin_heybutton).setOnClickListener(new View.OnClickListener() {
@@ -37,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
+        // 音声認識リスナー
         findViewById(R.id.amin_recog).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -67,7 +72,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+
+
+
+
     }
+
+
 
 
     // startActivityForResultで起動したアクティビティが終了した時に呼び出される関数
@@ -86,7 +97,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
             //トーストで結果表示
-            Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, resultsString, Toast.LENGTH_LONG).show();
+            txvRec.setText(resultsString);
+
         }
 
         super.onActivityResult(requestCode, resultCode, data);
