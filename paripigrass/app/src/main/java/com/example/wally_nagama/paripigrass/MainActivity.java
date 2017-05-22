@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference("message");
 
-    // 音声認識で使う
+    // 音声認識で使うよーんwwww
     private TextView txvAction;
     private TextView txvRec;
     private static final int REQUEST_CODE = 0;
