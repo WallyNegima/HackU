@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
         button = (Button)findViewById(R.id.button);
         editText = (EditText)findViewById(R.id.edittext);
 
-        myRef.setValue("Hello, World!");
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                myRef.setValue(editText.getText());
+                myRef.setValue(editText.getText().toString());
             }
         });
 
