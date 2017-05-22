@@ -119,22 +119,23 @@ public class MainActivity extends AppCompatActivity {
                     //すでに部屋に入っているので何もしない
                 }else{
                     myRef.addChildEventListener(childEventListener);
-                    user.joined = true;git
+                    user.joined = true;
+                    key = myRef.push().getKey();
+                    user.userName = userName.getText().toString();
+                    user.userKey = key;
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            // ここに1秒後に実行したい処理
+                            Log.d("Firebase", String.format("usernum:%d", userNum));
+                            myRef.child(key).child("userID").setValue(String.valueOf(userNum));
+                            myRef.child(key).child("userName").setValue(user.userName);
+                            user.userId = String.valueOf(userNum);
+                        }
+                    }, 500);
                 }
 
-                key = myRef.push().getKey();
-                user.userName = userName.getText().toString();
-                user.userKey = key;
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        // ここに1秒後に実行したい処理
-                        Log.d("Firebase", String.format("usernum:%d", userNum));
-                        myRef.child(key).child("userID").setValue(String.valueOf(userNum));
-                        myRef.child(key).child("userName").setValue(user.userName);
-                        user.userId = String.valueOf(userNum);
-                    }
-                }, 500);
+
             }
         });
 
