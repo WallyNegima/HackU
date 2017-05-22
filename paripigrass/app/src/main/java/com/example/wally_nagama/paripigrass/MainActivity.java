@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        /*---     音声認識リスナー   ---*/
+        /*---     音声認識リスナー   ----*/
         findViewById(R.id.amin_recog).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
