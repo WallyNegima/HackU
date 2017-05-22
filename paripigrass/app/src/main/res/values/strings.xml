@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">paripigrass</string>
+    <string name="amin_recognitionvoice">音声認識</string>
+    <string name="amin_heybutton">へぇ〜</string>
 </resources>
