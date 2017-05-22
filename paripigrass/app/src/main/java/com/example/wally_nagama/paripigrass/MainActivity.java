@@ -26,7 +26,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference("age");
+    DatabaseReference myRef = database.getReference();// 監視先の指定
     Button button;
     EditText editText;
 
@@ -53,11 +53,12 @@ public class MainActivity extends AppCompatActivity {
         button = (Button)findViewById(R.id.button);
         editText = (EditText)findViewById(R.id.edittext);
 
-        myRef.setValue("Hello, World!");
+        //myRef.setValue("Hello, World!");
 
 
         checkResult = new CheckResult(context);
 
+        // firebaseの監視下に変更が起こると、呼び出される
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -151,6 +152,8 @@ public class MainActivity extends AppCompatActivity {
         // 認識後
         checkResult.returnCharacter();
 
+
+        // firebaseのボタンを押す
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
