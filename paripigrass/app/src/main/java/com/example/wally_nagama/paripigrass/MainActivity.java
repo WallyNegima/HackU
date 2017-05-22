@@ -22,6 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 import org.w3c.dom.Comment;
 
 public class MainActivity extends AppCompatActivity {
+    User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
     Button button, roomCreateButton;
@@ -43,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
         roomNumber = (EditText)findViewById(R.id.roomNumber);
         userNum = 0;
 
+        user = new User();
+
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -54,13 +57,11 @@ public class MainActivity extends AppCompatActivity {
         roomCreateButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                final User user = new User(userName.getText().toString());
                 String roomId = roomNumber.getText().toString();
                 Room room = new Room(roomId);
                 myRef = database.getReference("room" + roomId);
                 userNum = 0;
 
-                //その部屋のuser数を調べて自分のuserIDを振る
                 //roomのuser数を見て人数を数える
                 //ユーザーのリストなどを見張る
                 childEventListener = new ChildEventListener() {
@@ -114,10 +115,16 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
                     }
                 };
-                myRef.addChildEventListener(childEventListener);
+                if(user.joined){
+                    //すでに部屋に入っているので何もしない
+                }else{
+                    myRef.addChildEventListener(childEventListener);
+                    user.joined = true;git
+                }
 
                 key = myRef.push().getKey();
-
+                user.userName = userName.getText().toString();
+                user.userKey = key;
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -125,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("Firebase", String.format("usernum:%d", userNum));
                         myRef.child(key).child("userID").setValue(String.valueOf(userNum));
                         myRef.child(key).child("userName").setValue(user.userName);
+                        user.userId = String.valueOf(userNum);
                     }
                 }, 500);
             }
