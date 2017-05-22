@@ -15,7 +15,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference("message");
+    DatabaseReference myRef = database.getReference("age");
     Button button;
     EditText editText;
 
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                myRef.setValue(editText.getText());
+                myRef.setValue(editText.getText().toString());
             }
         });
 
