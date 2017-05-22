@@ -15,7 +15,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference("age");
+    DatabaseReference myRef = database.getReference("message");
     Button button;
     EditText editText;
 
