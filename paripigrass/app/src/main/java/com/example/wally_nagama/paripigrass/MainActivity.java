@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                     //すでに部屋に入っているので何もしない
                 }else{
                     myRef.addChildEventListener(childEventListener);
-                    user.joined = true;
+                    //user.joined = true;
                     key = myRef.push().getKey();
                     user.userName = userName.getText().toString();
                     user.userKey = key;
