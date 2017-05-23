@@ -87,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /*--- ルーレットモ
+
 
         /*---     音声認識リスナー   ----*/
         findViewById(R.id.amin_recog).setOnClickListener(new View.OnClickListener() {

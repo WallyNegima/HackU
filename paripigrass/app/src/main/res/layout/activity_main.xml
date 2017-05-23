@@ -51,6 +51,12 @@
         android:layout_height="wrap_content"
         android:text="@string/amin_heybutton"/>
 
+    <Button
+        android:id="@+id/amin_intent_roulette"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/amin_intent_roulette"/>
+
 
 
 </LinearLayout>
