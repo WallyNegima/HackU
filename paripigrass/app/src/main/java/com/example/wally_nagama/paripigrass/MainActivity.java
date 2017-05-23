@@ -31,9 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE = 0;
     public Context context;
     public CheckResult checkResult;
-
-
-
+    private String result_voce;
 
 
     @Override
@@ -58,24 +56,27 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("a", "Value is: " + value);
             }
 
-            @Override public void onCancelled(DatabaseError error) {
+            @Override
+            public void onCancelled(DatabaseError error) {
                 // Failed to read value
-                Log.w("a", "Failed to read value.", error.toException());}
+                Log.w("a", "Failed to read value.", error.toException());
+            }
         });
 
 
-
-        txvAction=(TextView) findViewById(R.id.amin_txvAction);
-        txvRec=(TextView) findViewById(R.id.txv_recog);
+        txvAction = (TextView) findViewById(R.id.amin_txvAction);
+        txvRec = (TextView) findViewById(R.id.txv_recog);
 
         /*---    へーへーボタンリスナー ---*/
         findViewById(R.id.amin_heybutton).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick (View v){
+            public void onClick(View v) {
                 txvAction.setText(R.string.amin_heybutton);
                 //Toast.makeText(context, "乾杯", Toast.LENGTH_SHORT).show();
             }
         });
+
+
 
 
         /*---     音声認識リスナー   ----*/
@@ -108,41 +109,83 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-    };
+    }
 
-
-
-
-
-
-
+    ;
 
 
     /*---       startActivityForResultで起動したアクティビティが終了した時に呼び出される関数   ---*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // 音声認識結果の時
-        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
 
             // 結果文字列リストを取得
             ArrayList<String> results = data.getStringArrayListExtra(
                     RecognizerIntent.EXTRA_RESULTS);
 
-            if(results.size() > 0) {
+            if (results.size() > 0) {
                 // 認識結果候補で一番有力なものを表示
-                txvRec.setText( results.get(0));
+                txvRec.setText(results.get(0));
                 // checkCharacterに値を渡す
-                checkResult.resultRec = results.get(0);
+                //checkResult.resultRec = results.get(0);
+                result_voce = results.get(0);
+
+                /*
+                /*---    この下に結果処理を一応描いてみる   ---*/
+                switch (result_voce) {
+                /*---   乾杯   ---*/
+                    case "乾杯します":
+                        Toast.makeText(context, "乾杯！！", Toast.LENGTH_LONG).show();
+                        break;
+                    case "乾杯":
+                        Toast.makeText(context, "乾杯！！", Toast.LENGTH_LONG).show();
+                        break;
+
+                /*---   ルーレット   */
+                    case "ルーレットモード":
+                        Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
+                        Intent intent3 = new Intent(this, Roulette.class);
+                        startActivity(intent3);
+                        break;
+
+                    case "ルーレット":
+                        Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
+                        // ルーレットへのインテント
+                        Intent intent2 = new Intent(this, Roulette.class);
+                        startActivity(intent2);
+                        break;
+
+
+                /*---   司会者   ---*/
+                    case "司会者になりました":
+                        Toast.makeText(context, R.string.amin_speech, Toast.LENGTH_LONG).show();
+                        break;
+                    case "司会者":
+                        Toast.makeText(context, R.string.amin_speech, Toast.LENGTH_LONG).show();
+                        break;
+
+                /*---   一気飲み   ---*/
+                    case "一気飲み":
+                        Toast.makeText(context, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
+                        break;
+                    case "一気飲みします":
+                        Toast.makeText(context, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
+                        break;
+
+
+
+                }
+
             }
+
+            //super.onActivityResult(requestCode, resultCode, data);    ---1
+
+            // 認識後
+            //checkResult.returnCharacter();
 
         }
 
-        //super.onActivityResult(requestCode, resultCode, data);    ---1
-
-        // 認識後
-        checkResult.returnCharacter();
 
     }
-
-
 }
