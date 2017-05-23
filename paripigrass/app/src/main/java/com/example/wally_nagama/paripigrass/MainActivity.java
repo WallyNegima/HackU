@@ -54,13 +54,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        context = this;
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        context = this;
         button = (Button)findViewById(R.id.button);
         roomCreateButton = (Button)findViewById(R.id.userCreate);
         editText = (EditText)findViewById(R.id.edittext);
@@ -70,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         user = new User();
 
+        //user追加
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -81,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         roomCreateButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+
                 String roomId = roomNumber.getText().toString();
                 Room room = new Room(roomId);
                 myRef = database.getReference("room" + roomId);
@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
                     }
                 };
+
                 if(user.joined){
                     //すでに部屋に入っているので何もしない
                 }else{
