@@ -1,8 +1,6 @@
 package com.example.wally_nagama.paripigrass;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
     DatabaseReference myRef = database.getReference();
     Button button, roomCreateButton;
     EditText editText, userName, roomNumber;
-    int userNum;
     Context act = this;
     ChildEventListener childEventListener;
     String key;
@@ -45,14 +42,25 @@ public class MainActivity extends AppCompatActivity {
         editText = (EditText)findViewById(R.id.edittext);
         userName = (EditText)findViewById(R.id.userName);
         roomNumber = (EditText)findViewById(R.id.roomNumber);
-        userNum = 0;
 
         user = new User();
+
+        myRef.child("user").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("onClick",""+dataSnapshot.getValue(int.class));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                myRef.child("user").setValue(editText.getText().toString());
+                myRef.child("user").setValue(1);
             }
         });
 
@@ -63,15 +71,12 @@ public class MainActivity extends AppCompatActivity {
                 String roomId = roomNumber.getText().toString();
                 Room room = new Room(roomId);
                 myRef = database.getReference("room" + roomId);
-                userNum = 0;
 
-                //roomのuser数を見て人数を数える
                 //ユーザーのリストなどを見張る
                 childEventListener = new ChildEventListener() {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildAdded:" + dataSnapshot);
-                        userNum+=1;
                     }
 
                     @Override
@@ -87,15 +92,12 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
 
-                        if (user.joined){
-                            String id = dataSnapshot.child("userID").getValue(String.class);
-                            if(Integer.parseInt(id) < userNum){
-                                userNum --;
-                                Map<String, Object> childUpdates = new HashMap<>();
-                                childUpdates.put("/"+ key + "/userID", ""+userNum );
-                                myRef.updateChildren(childUpdates);
-                                user.userId = String.valueOf(userNum);
-                            }
+                        int id = dataSnapshot.child("userID").getValue(int.class);
+                        if(id < user.userId){
+                            user.userId --;
+                            Map<String, Object> childUpdates = new HashMap<>();
+                            childUpdates.put("/"+ key + "/userID", user.userId );
+                            myRef.updateChildren(childUpdates);
                         }
                     }
 
@@ -117,24 +119,47 @@ public class MainActivity extends AppCompatActivity {
                     myRef.addChildEventListener(childEventListener);
                     user.joined = true;
                     key = myRef.push().getKey();
+                    registUserID(key,myRef,user);
                     user.userName = userName.getText().toString();
                     user.userKey = key;
-                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            // ここに1秒後に実行したい処理
-                            Log.d("Firebase", String.format("usernum:%d", userNum));
-                            myRef.child(key).child("userID").setValue(String.valueOf(userNum));
-                            myRef.child(key).child("userName").setValue(user.userName);
-                            user.userId = String.valueOf(userNum);
-                            userNum --; //自分のaddに対してもインクリメントしてるからその分引く
-                        }
-                    }, 500);
+                    myRef.child(key).child("userName").setValue(user.userName);
                 }
 
 
             }
         });
 
+    }
+
+    private void registUserID(final String key, final DatabaseReference databaseReference, final User user){
+        final Query query = databaseReference.orderByChild("userID").limitToLast(1);
+        query.addChildEventListener(new ChildEventListener(){
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                int id;
+                if(dataSnapshot.child("userID").getValue(int.class) == null){
+                    //誰もおらんとき
+                    id = 0;
+                }else{
+                    id = dataSnapshot.child("userID").getValue(int.class)+1;
+                }
+                databaseReference.child(key).child("userID").setValue(id);
+                user.userId = id;
+                Log.d("registID", "onChildAdded:" + dataSnapshot);
+                query.removeEventListener(this);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
     }
 }

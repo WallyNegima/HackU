@@ -7,8 +7,8 @@ package com.example.wally_nagama.paripigrass;
 public class User {
     public String userName;
     public String userKey;
-    public String userId;
-    public String nextUserId;
+    public int userId;
+    public int nextUserId;
     public String sensorValue;
     public boolean joined = false;
 
