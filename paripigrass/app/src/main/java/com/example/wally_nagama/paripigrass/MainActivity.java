@@ -21,6 +21,9 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.w3c.dom.Comment;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -68,44 +71,37 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildAdded:" + dataSnapshot);
-
-                        // A new comment has been added, add it to the displayed list
                         userNum+=1;
-                        // ...
                     }
 
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                        Log.d("a", "onChildChanged:" + dataSnapshot.getKey());
-
-                        // A comment has changed, use the key to determine if we are displaying this
-                        // comment and if so displayed the changed comment.
-                        //Comment newComment = dataSnapshot.getValue(Comment.class);
-                        //String commentKey = dataSnapshot.getKey();
-                        // ...
+                        Log.d("a", "onChildChanged:" + dataSnapshot);
                     }
 
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
-                        Log.d("a", "onChildRemoved:" + dataSnapshot.getKey());
+                        Log.d("a", "onChildRemoved:" + dataSnapshot);
 
-                        // A comment has changed, use the key to determine if we are displaying this
-                        // comment and if so remove it.
-                        String commentKey = dataSnapshot.getKey();
+                        if(dataSnapshot.child("userID").getValue() == null){
+                            return;
+                        }
 
-                        // ...
+                        if (user.joined){
+                            String id = dataSnapshot.child("userID").getValue(String.class);
+                            if(Integer.parseInt(id) < userNum){
+                                userNum --;
+                                Map<String, Object> childUpdates = new HashMap<>();
+                                childUpdates.put("/"+ key + "/userID", ""+userNum );
+                                myRef.updateChildren(childUpdates);
+                                user.userId = String.valueOf(userNum);
+                            }
+                        }
                     }
 
                     @Override
                     public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildMoved:" + dataSnapshot.getKey());
-
-                        // A comment has changed position, use the key to determine if we are
-                        // displaying this comment and if so move it.
-                        Comment movedComment = dataSnapshot.getValue(Comment.class);
-                        String commentKey = dataSnapshot.getKey();
-
-                        // ...
                     }
 
                     @Override
@@ -119,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     //すでに部屋に入っているので何もしない
                 }else{
                     myRef.addChildEventListener(childEventListener);
-                    //user.joined = true;
+                    user.joined = true;
                     key = myRef.push().getKey();
                     user.userName = userName.getText().toString();
                     user.userKey = key;
@@ -131,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
                             myRef.child(key).child("userID").setValue(String.valueOf(userNum));
                             myRef.child(key).child("userName").setValue(user.userName);
                             user.userId = String.valueOf(userNum);
+                            userNum --; //自分のaddに対してもインクリメントしてるからその分引く
                         }
                     }, 500);
                 }
