@@ -192,7 +192,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
     }
 
     private void registUserID(final String key, final DatabaseReference databaseReference, final User user){
