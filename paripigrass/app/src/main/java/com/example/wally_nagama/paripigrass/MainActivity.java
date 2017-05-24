@@ -17,6 +17,7 @@ import android.widget.Toast;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
@@ -32,16 +33,20 @@ import java.util.ArrayList;
 
 import org.w3c.dom.Comment;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
     Button button, roomCreateButton;
     EditText editText, userName, roomNumber;
-    int userNum;
     Context act = this;
     ChildEventListener childEventListener;
     String key;
+    int color;
+    TextView test_tv;
 
     // 音声認識で使うよーんwwwwww
     private TextView txvAction;
@@ -64,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         editText = (EditText)findViewById(R.id.edittext);
         userName = (EditText)findViewById(R.id.userName);
         roomNumber = (EditText)findViewById(R.id.roomNumber);
-        userNum = 0;
+        test_tv = (TextView)findViewById(R.id.test_tv);
 
         user = new User();
 
@@ -72,7 +77,52 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                myRef.child("user").setValue(editText.getText().toString());
+                user.now_color = Integer.valueOf(editText.getText().toString());
+                myRef.child("prost_now").child(key).child("now_color").setValue(user.now_color);
+                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
+                final ChildEventListener ev =new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                        自分が一番乗りのとき
+//                        next_colorは一回だけ変える
+                        if(dataSnapshot.getKey() == key){
+                            return;
+                        }
+                        Log.d("prost", "onChildAdded:" + dataSnapshot);
+                        if (dataSnapshot.child("next_color") == null) {
+                            return;
+                        }
+//                      自身のnext_colorをdataSnap.Child("now_color")に変更
+                        color = dataSnapshot.child("next_color").getValue(int.class);
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                };
+                myRef.child("prost_now").addChildEventListener(ev);
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Lisnerの解除
+//                        next_colorを書き換え
+//                        dbの削除
+                        myRef.child("prost_now").removeEventListener(ev);
+                        user.now_color = color;
+                        Log.d("prost","onChildtest"+color);
+                        myRef.child("prost_now").child(key).removeValue();
+                        test_tv.setText(""+color);
+                    }
+                }, 500);
+
             }
         });
 
@@ -84,52 +134,40 @@ public class MainActivity extends AppCompatActivity {
                 String roomId = roomNumber.getText().toString();
                 Room room = new Room(roomId);
                 myRef = database.getReference("room" + roomId);
-                userNum = 0;
 
-                //roomのuser数を見て人数を数える
                 //ユーザーのリストなどを見張る
                 childEventListener = new ChildEventListener() {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildAdded:" + dataSnapshot);
-
-                        // A new comment has been added, add it to the displayed list
-                        userNum+=1;
-                        // ...
                     }
 
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                        Log.d("a", "onChildChanged:" + dataSnapshot.getKey());
+                        Log.d("a", "onChildChanged:" + dataSnapshot);
 
-                        // A comment has changed, use the key to determine if we are displaying this
-                        // comment and if so displayed the changed comment.
-                        //Comment newComment = dataSnapshot.getValue(Comment.class);
-                        //String commentKey = dataSnapshot.getKey();
-                        // ...
                     }
 
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
-                        Log.d("a", "onChildRemoved:" + dataSnapshot.getKey());
+                        Log.d("a", "onChildRemoved:" + dataSnapshot);
 
-                        // A comment has changed, use the key to determine if we are displaying this
-                        // comment and if so remove it.
-                        String commentKey = dataSnapshot.getKey();
+                        if(dataSnapshot.child("userID").getValue() == null){
+                            return;
+                        }
 
-                        // ...
+                        int id = dataSnapshot.child("userID").getValue(int.class);
+                        if(id < user.userId){
+                            user.userId --;
+                            Map<String, Object> childUpdates = new HashMap<>();
+                            childUpdates.put("/"+ key + "/userID", user.userId );
+                            myRef.updateChildren(childUpdates);
+                        }
                     }
 
                     @Override
                     public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildMoved:" + dataSnapshot.getKey());
-
-                        // A comment has changed position, use the key to determine if we are
-                        // displaying this comment and if so move it.
-                        Comment movedComment = dataSnapshot.getValue(Comment.class);
-                        String commentKey = dataSnapshot.getKey();
-
-                        // ...
                     }
 
                     @Override
@@ -144,20 +182,13 @@ public class MainActivity extends AppCompatActivity {
                     //すでに部屋に入っているので何もしない
                 }else{
                     myRef.addChildEventListener(childEventListener);
-                    //user.joined = true;
+                    user.joined = true;
                     key = myRef.push().getKey();
+                    registUserID(key,myRef,user);
                     user.userName = userName.getText().toString();
                     user.userKey = key;
-                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            // ここに1秒後に実行したい処理
-                            Log.d("Firebase", String.format("usernum:%d", userNum));
-                            myRef.child(key).child("userID").setValue(String.valueOf(userNum));
-                            myRef.child(key).child("userName").setValue(user.userName);
-                            user.userId = String.valueOf(userNum);
-                        }
-                    }, 500);
+                    myRef.child(key).child("userName").setValue(user.userName);
+                    myRef.child(key).child("is_kanpai").setValue(false);
                 }
 
 
@@ -288,5 +319,37 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+    }
+
+    private void registUserID(final String key, final DatabaseReference databaseReference, final User user){
+        final Query query = databaseReference.orderByChild("userID").limitToLast(1);
+        query.addChildEventListener(new ChildEventListener(){
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                int id;
+                if(dataSnapshot.child("userID").getValue(int.class) == null){
+                    //誰もおらんとき
+                    id = 0;
+                }else{
+                    id = dataSnapshot.child("userID").getValue(int.class)+1;
+                }
+                databaseReference.child(key).child("userID").setValue(id);
+                user.userId = id;
+                Log.d("registID", "onChildAdded:" + dataSnapshot);
+                query.removeEventListener(this);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
     }
 }

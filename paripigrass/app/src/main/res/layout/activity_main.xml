@@ -17,6 +17,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hello World!"
+            android:id="@+id/test_tv"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
     <Button
@@ -60,6 +69,7 @@
             android:layout_width="400px"
             android:layout_height="wrap_content"
             android:hint="roomNumber"
+            android:digits="1234567890"
             />
         <EditText
             android:id="@+id/userName"
