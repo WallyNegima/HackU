@@ -8,11 +8,14 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="0dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hello World!"
+            android:id="@+id/device"
+            android:text="device"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -34,37 +37,48 @@
 
         </LinearLayout>
         <Button
+            android:id="@+id/search_bt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="search"/>
+        <Button
             android:id="@+id/btbutton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="接続可能なbluetooth機器から選ぶ"/>
-        <ListView
+        <Button
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/btlist">
-        </ListView>
+            android:id="@+id/connect"
+            android:text="connect!"/>
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:id="@+id/bt_text"/>
+            android:layout_height="wrap_content"
+            android:id="@+id/bt_text"
+            tools:layout_editor_absoluteY="8dp"
+            tools:layout_editor_absoluteX="0dp" />
         <EditText
             android:id="@+id/roomNumber"
-            android:layout_width="400px"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:hint="roomNumber"
-            />
+            tools:layout_editor_absoluteY="0dp"
+            tools:layout_editor_absoluteX="0dp" />
         <EditText
             android:id="@+id/userName"
-            android:layout_width="400px"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:hint="username"
-            />
+            tools:layout_editor_absoluteY="0dp"
+            tools:layout_editor_absoluteX="0dp" />
 
         <Button
             android:id="@+id/userCreate"
             android:text="join room"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            tools:layout_editor_absoluteY="0dp"
+            tools:layout_editor_absoluteX="0dp" />
 
 
     </LinearLayout>
