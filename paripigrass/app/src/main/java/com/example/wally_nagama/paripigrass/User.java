@@ -11,6 +11,7 @@ public class User {
     public int nextUserId;
     public String sensorValue;
     public boolean joined = false;
+    public int now_color = 0;
 
     //コンストラクタ
     User(){}

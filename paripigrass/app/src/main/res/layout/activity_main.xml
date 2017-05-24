@@ -13,6 +13,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Hello World!"
+            android:id="@+id/test_tv"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -24,7 +25,10 @@
             <EditText
                 android:id="@+id/edittext"
                 android:layout_width="400px"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:digits="1234567890"
+                android:hint="NumberOnly"
+                />
 
             <Button
                 android:id="@+id/button"
@@ -38,6 +42,7 @@
             android:layout_width="400px"
             android:layout_height="wrap_content"
             android:hint="roomNumber"
+            android:digits="1234567890"
             />
         <EditText
             android:id="@+id/userName"

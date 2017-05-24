@@ -1,12 +1,15 @@
 package com.example.wally_nagama.paripigrass;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
@@ -31,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     Context act = this;
     ChildEventListener childEventListener;
     String key;
+    int color;
+    TextView test_tv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,25 +47,59 @@ public class MainActivity extends AppCompatActivity {
         editText = (EditText)findViewById(R.id.edittext);
         userName = (EditText)findViewById(R.id.userName);
         roomNumber = (EditText)findViewById(R.id.roomNumber);
+        test_tv = (TextView)findViewById(R.id.test_tv);
 
         user = new User();
-
-        myRef.child("user").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d("onClick",""+dataSnapshot.getValue(int.class));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
 
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                myRef.child("user").setValue(1);
+                user.now_color = Integer.valueOf(editText.getText().toString());
+                myRef.child("prost_now").child(key).child("now_color").setValue(user.now_color);
+                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
+                final ChildEventListener ev =new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                        自分が一番乗りのとき
+//                        next_colorは一回だけ変える
+                        if(dataSnapshot.getKey() == key){
+                            return;
+                        }
+                        Log.d("prost", "onChildAdded:" + dataSnapshot);
+                        if (dataSnapshot.child("next_color") == null) {
+                            return;
+                        }
+//                      自身のnext_colorをdataSnap.Child("now_color")に変更
+                        color = dataSnapshot.child("next_color").getValue(int.class);
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                };
+                myRef.child("prost_now").addChildEventListener(ev);
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Lisnerの解除
+//                        next_colorを書き換え
+//                        dbの削除
+                        myRef.child("prost_now").removeEventListener(ev);
+                        user.now_color = color;
+                        Log.d("prost","onChildtest"+color);
+                        myRef.child("prost_now").child(key).removeValue();
+                        test_tv.setText(""+color);
+                    }
+                }, 500);
+
             }
         });
 
@@ -82,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildChanged:" + dataSnapshot);
+
                     }
 
                     @Override
@@ -123,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
                     user.userName = userName.getText().toString();
                     user.userKey = key;
                     myRef.child(key).child("userName").setValue(user.userName);
+                    myRef.child(key).child("is_kanpai").setValue(false);
                 }
 
 
