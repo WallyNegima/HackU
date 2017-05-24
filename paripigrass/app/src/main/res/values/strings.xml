@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">paripigrass</string>
+    <string name="title_new_device"></string>
 </resources>

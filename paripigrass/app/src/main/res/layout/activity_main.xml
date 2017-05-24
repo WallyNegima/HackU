@@ -33,6 +33,20 @@
                 android:layout_height="wrap_content" />
 
         </LinearLayout>
+        <Button
+            android:id="@+id/btbutton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="接続可能なbluetooth機器から選ぶ"/>
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/btlist">
+        </ListView>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/bt_text"/>
         <EditText
             android:id="@+id/roomNumber"
             android:layout_width="400px"
@@ -51,6 +65,7 @@
             android:text="join room"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
 
     </LinearLayout>
 

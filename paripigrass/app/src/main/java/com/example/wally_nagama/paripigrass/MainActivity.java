@@ -1,14 +1,25 @@
 package com.example.wally_nagama.paripigrass;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
@@ -21,16 +32,28 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.w3c.dom.Comment;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED;
+import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED;
+import static android.bluetooth.BluetoothDevice.ACTION_FOUND;
+import static android.bluetooth.BluetoothDevice.ACTION_NAME_CHANGED;
+
 public class MainActivity extends AppCompatActivity {
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton;
+    Button button, roomCreateButton, btListButton;
     EditText editText, userName, roomNumber;
     int userNum;
     Context act = this;
     ChildEventListener childEventListener;
     String key;
+    BluetoothAdapter btAdapter;
+    ArrayList<String> itemArray = new ArrayList<String>();
+    final List<Integer> checkedItems = new ArrayList<>();　//選択されたアイテム
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,18 +61,55 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         button = (Button)findViewById(R.id.button);
-        roomCreateButton = (Button)findViewById(R.id.userCreate);
         editText = (EditText)findViewById(R.id.edittext);
+
+        roomCreateButton = (Button)findViewById(R.id.userCreate);
+        btListButton = (Button)findViewById(R.id.btbutton);
         userName = (EditText)findViewById(R.id.userName);
         roomNumber = (EditText)findViewById(R.id.roomNumber);
         userNum = 0;
+        btAdapter = BluetoothAdapter.getDefaultAdapter();
+        final BluetoothDialogFragment btDialog = new BluetoothDialogFragment();
 
         user = new User();
 
-        button.setOnClickListener(new View.OnClickListener(){
+        //btlistを表示
+        btListButton.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View v){
-                myRef.child("user").setValue(editText.getText().toString());
+            public void onClick(View v) {
+
+                TextView btText = (TextView)findViewById(R.id.bt_text);
+                // ペアリング済みのデバイス一覧を取得
+                Set<BluetoothDevice> btDevices = btAdapter.getBondedDevices();
+                String devList = "";
+                for (BluetoothDevice device : btDevices) {
+                    devList += device.getName() + "(" + getBondState(device.getBondState()) + ")\n";
+                    itemArray.add(device.getName());
+                }
+                btText.setText(devList);
+
+                String[] items = (String[])itemArray.toArray(new String[0]);
+                int defaultItem = 0; // デフォルトでチェックされているアイテム
+                checkedItems.add(defaultItem);
+                new AlertDialog.Builder(act)
+                        .setTitle("Selector")
+                        .setSingleChoiceItems(items, defaultItem, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                checkedItems.clear();
+                                checkedItems.add(which);
+                            }
+                        })
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (!checkedItems.isEmpty()) {
+                                    Log.d("checkedItem:", "" + checkedItems.get(0));
+                                }
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
             }
         });
 
@@ -134,10 +194,24 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }, 500);
                 }
-
-
             }
         });
-
     }
+
+    String getBondState(int state) {
+        String strState="";
+        switch (state) {
+            case BluetoothDevice.BOND_BONDED:
+                strState = "接続履歴あり";
+                break;
+            case BluetoothDevice.BOND_BONDING:
+                break;
+            case BluetoothDevice.BOND_NONE:
+                strState = "接続履歴なし";
+                break;
+            default :strState = "エラー";
+        }
+        return strState;
+    }
+
 }
