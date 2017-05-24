@@ -17,7 +17,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import org.w3c.dom.Comment;
@@ -183,9 +185,9 @@ public class MainActivity extends AppCompatActivity {
                     myRef.addChildEventListener(childEventListener);
                     user.joined = true;
                     key = myRef.push().getKey();
-                    registUserID(key,myRef,user);
-                    user.userName = userName.getText().toString();
                     user.userKey = key;
+                    registUserID(myRef,user);
+                    user.userName = userName.getText().toString();
                     myRef.child(key).child("userName").setValue(user.userName);
                 }
 
@@ -194,35 +196,32 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void registUserID(final String key, final DatabaseReference databaseReference, final User user){
-        final Query query = databaseReference.orderByChild("userID").limitToLast(1);
-        query.addChildEventListener(new ChildEventListener(){
+    private void registUserID(final DatabaseReference databaseReference, final User user){
+        databaseReference.child("test").runTransaction(new Transaction.Handler() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                int id;
-                if(dataSnapshot.child("userID").getValue(int.class) == null){
-                    //誰もおらんとき
-                    id = 0;
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                if(mutableData.getValue() == null){
+                    mutableData.setValue(1);
+                    user.userId = 1;
                 }else{
-                    id = dataSnapshot.child("userID").getValue(int.class)+1;
+                    int id = mutableData.getValue(int.class)+1;
+                    mutableData.setValue(id);
+                    user.userId = id;
                 }
-                databaseReference.child(key).child("userID").setValue(id);
-                user.userId = id;
-                Log.d("registID", "onChildAdded:" + dataSnapshot);
-                query.removeEventListener(this);
+                databaseReference.child(user.userKey).child("userId").setValue(user.userId);
+                return Transaction.success(mutableData);
             }
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
 
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {}
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
+                if (b) {
+                    String logMessage = dataSnapshot.getValue().toString();
+                    Log.d("testRunTran", "counter: " + logMessage);
+                } else {
+                    Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
+                }
+            }
         });
     }
 }
