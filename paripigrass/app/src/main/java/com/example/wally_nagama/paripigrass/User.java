@@ -13,6 +13,7 @@ public class User {
     public boolean joined = false;
     public int now_color = 0;
 
+
     //コンストラクタ
     User(){}
 

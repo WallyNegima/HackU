@@ -44,9 +44,11 @@ public class MainActivity extends AppCompatActivity {
     EditText editText, userName, roomNumber;
     Context act = this;
     ChildEventListener childEventListener;
+    ChildEventListener childEventListener1;
     String key;
     int color;
     TextView test_tv;
+
 
     // 音声認識で使うよーんwwwwww
     private TextView txvAction;
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     public Context context;
     public CheckResult checkResult;
     private String result_voce;
+    TextView txv_roulette;
 
 
     @Override
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         userName = (EditText)findViewById(R.id.userName);
         roomNumber = (EditText)findViewById(R.id.roomNumber);
         test_tv = (TextView)findViewById(R.id.test_tv);
+        txv_roulette = (TextView)findViewById(R.id.txv_roulette);
 
         user = new User();
 
@@ -80,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 user.now_color = Integer.valueOf(editText.getText().toString());
                 myRef.child("prost_now").child(key).child("now_color").setValue(user.now_color);
                 myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
-                final ChildEventListener ev =new ChildEventListener() {
+                final ChildEventListener ev = new ChildEventListener() {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 //                        自分が一番乗りのとき
@@ -190,8 +194,6 @@ public class MainActivity extends AppCompatActivity {
                     myRef.child(key).child("userName").setValue(user.userName);
                     myRef.child(key).child("is_kanpai").setValue(false);
                 }
-
-
             }
         });
 
@@ -241,6 +243,48 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
+        //---------------------------------------------------リスナーテスト
+        childEventListener1 = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                txv_roulette.setText("追加されました");
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+                myRef.child("light_now").child(key).child("color").setValue(user.now_color);
+
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        //txv_roulette.setText("ルーレットを開始します");
+
+                        txv_roulette.setText("変更されました");
+                    }
+                }, 2000);
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+        myRef.child("room8080").addChildEventListener(childEventListener1);
+
+
     }
 
     ;
@@ -284,8 +328,10 @@ public class MainActivity extends AppCompatActivity {
                     case "ルーレット":
                         Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
                         // ルーレットへのインテント
-                        Intent intent2 = new Intent(this, Roulette.class);
+                        Intent intent2 = new Intent(this, PartyActivity.class);
                         startActivity(intent2);
+
+
                         break;
 
 
@@ -351,5 +397,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         });
+
+
+
+
     }
 }
