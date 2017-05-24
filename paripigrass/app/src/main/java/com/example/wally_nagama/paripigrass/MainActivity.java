@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
                             if(is_first){
 //                              next_colorは一回だけ変える
                                 myRef.child("prost_now").child(key).removeValue();
+                                Log.d("prost","removeValue_Iam_first");
                             }else{
                                 count++;
                             }
@@ -95,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
                             myRef.child("prost_now").removeEventListener(this);
                         }else{
                             Log.d("prost","removeChild:"+dataSnapshot);
-                            //色変えない
                             if(!is_first){
 //                                自分のNext_colorの持ち主が消えたことを確認する
                                 myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
 //                        next_colorを書き換え
 //                        dbの削除
                         myRef.child("prost_now").child(key).removeValue();
+                        Log.d("prost","removeValue");
                         user.now_color = color;
                         Log.d("prost","onChildtest:"+color);
                         test_tv.setText(""+color);
