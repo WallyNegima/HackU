@@ -154,7 +154,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildChanged:" + dataSnapshot);
-
                     }
 
                     @Override
