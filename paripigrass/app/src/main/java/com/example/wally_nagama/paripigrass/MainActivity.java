@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     String key;
     int color;
     TextView test_tv;
+    int removedUserId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
+                        /*
                         Log.d("a", "onChildRemoved:" + dataSnapshot);
 
                         if(dataSnapshot.child("userID").getValue() == null){
@@ -164,6 +166,42 @@ public class MainActivity extends AppCompatActivity {
                             Map<String, Object> childUpdates = new HashMap<>();
                             childUpdates.put("/"+ key + "/userID", user.userId );
                             myRef.updateChildren(childUpdates);
+                        }
+                        */
+
+                        //userが部屋からいなくなったときの処理
+                        for(DataSnapshot datasnapshot : dataSnapshot.getChildren()){
+                            if(datasnapshot.getKey().equals("userId")){
+                                removedUserId = datasnapshot.getValue(int.class);
+                                myRef.child(user.userKey).child("userId").runTransaction(new Transaction.Handler() {
+                                    @Override
+                                    public Transaction.Result doTransaction(MutableData mutableData) {
+                                        if(mutableData.getValue() == null){
+                                            //userIdがnullのときの処理だが、必要ないはず
+                                        }else{
+                                            if(mutableData.getValue(int.class) > removedUserId ){
+                                                //自分よりも先に部屋に入った人が抜けたら
+                                                user.userId--;
+                                                user.nextUserId--;
+                                                myRef.child(user.userKey).child("userId").setValue(user.userId);
+                                                Log.d("removed user", "id:" + String.valueOf(user.userId) + " next:" + String.valueOf(user.nextUserId));
+                                            }
+                                        }
+                                        return Transaction.success(mutableData);
+                                    }
+
+                                    @Override
+                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                                        if (b) {
+                                            String logMessage = dataSnapshot.getValue().toString();
+                                            Log.d("testRunTran", "counter: " + logMessage);
+                                        } else {
+                                            Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
+                                        }
+                                    }
+                                });
+                            }
                         }
                     }
 
@@ -197,16 +235,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registUserID(final DatabaseReference databaseReference, final User user){
-        databaseReference.child("test").runTransaction(new Transaction.Handler() {
+        databaseReference.child("numberOfUser").runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
                 if(mutableData.getValue() == null){
                     mutableData.setValue(1);
                     user.userId = 1;
+                    user.nextUserId = 1;
                 }else{
                     int id = mutableData.getValue(int.class)+1;
                     mutableData.setValue(id);
                     user.userId = id;
+                    user.nextUserId = 1;
                 }
                 databaseReference.child(user.userKey).child("userId").setValue(user.userId);
                 return Transaction.success(mutableData);
