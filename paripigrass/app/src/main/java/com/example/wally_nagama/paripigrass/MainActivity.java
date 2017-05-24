@@ -201,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
                     public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildMoved:" + dataSnapshot.getKey());
                     }
-
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Log.w("a", "postComments:onCancelled", databaseError.toException());
