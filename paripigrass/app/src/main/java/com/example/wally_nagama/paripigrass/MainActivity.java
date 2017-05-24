@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
 //                        Lisnerの解除
-                        if (dataSnapshot.getKey() == key){
+                        if (dataSnapshot.getKey().equals(key)){
                             Log.d("prost","removeListner");
                             myRef.child("prost_now").removeEventListener(this);
                         }else{
@@ -142,6 +142,13 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
                         Log.d("a", "onChildAdded:" + dataSnapshot);
+                        if(dataSnapshot.child("userId").getValue() != null){
+                            if (user.nextUserId == 1){
+                                user.nextUserId ++;
+                            }
+//                            TODO::Next_idが1ならNextをuserId++にする
+                        }
+
                     }
 
                     @Override
@@ -154,16 +161,40 @@ public class MainActivity extends AppCompatActivity {
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
                         Log.d("a", "onChildRemoved:" + dataSnapshot);
 
-                        if(dataSnapshot.child("userID").getValue() == null){
+                        if(dataSnapshot.child("userId").getValue() == null){
                             return;
                         }
-
-                        int id = dataSnapshot.child("userID").getValue(int.class);
+                        int id = dataSnapshot.child("userId").getValue(int.class);
                         if(id < user.userId){
                             user.userId --;
                             Map<String, Object> childUpdates = new HashMap<>();
-                            childUpdates.put("/"+ key + "/userID", user.userId );
+                            childUpdates.put("/"+ key + "/userId", user.userId );
                             myRef.updateChildren(childUpdates);
+
+                        }else if(id == user.nextUserId){
+                            myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
+                                int temp;
+                                @Override
+                                public Transaction.Result doTransaction(MutableData mutableData) {
+                                    temp = mutableData.getValue(int.class);
+                                    return null;
+                                }
+
+                                @Override
+                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                                    if (b) {
+                                        String logMessage = dataSnapshot.getValue().toString();
+                                        Log.d("testRunTran1", "counter: " + logMessage);
+                                    } else {
+                                        if (temp == user.userId){
+                                            user.nextUserId = 1;
+                                        }
+                                        Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
+                                    }
+                                }
+                            });
+
                         }
                     }
 
@@ -197,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registUserID(final DatabaseReference databaseReference, final User user){
-        databaseReference.child("test").runTransaction(new Transaction.Handler() {
+        databaseReference.child("numberOfUser").runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
                 if(mutableData.getValue() == null){
@@ -209,6 +240,7 @@ public class MainActivity extends AppCompatActivity {
                     user.userId = id;
                 }
                 databaseReference.child(user.userKey).child("userId").setValue(user.userId);
+                user.nextUserId = 1;
                 return Transaction.success(mutableData);
             }
 
