@@ -58,26 +58,51 @@ public class MainActivity extends AppCompatActivity {
                 myRef.child("prost_now").child(key).child("now_color").setValue(user.now_color);
                 myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
                 final ChildEventListener ev =new ChildEventListener() {
+                    int count = 0;
+                    boolean is_first = false;
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        Log.d("prost", "onChildAdded:All:" + dataSnapshot);
 //                        自分が一番乗りのとき
-//                        next_colorは一回だけ変える
+                        if (count == 0 && dataSnapshot.getKey() == key){
+                            is_first = true;
+                        }
                         if(dataSnapshot.getKey() == key){
                             return;
                         }
                         Log.d("prost", "onChildAdded:" + dataSnapshot);
-                        if (dataSnapshot.child("next_color") == null) {
-                            return;
-                        }
+                        if (dataSnapshot.child("now_color").getValue() != null) {
 //                      自身のnext_colorをdataSnap.Child("now_color")に変更
-                        color = dataSnapshot.child("next_color").getValue(int.class);
+                            color = dataSnapshot.child("now_color").getValue(int.class);
+                            myRef.child("prost_now").child(key).child("next_color").setValue(color);
+                            if(is_first){
+//                              next_colorは一回だけ変える
+                                myRef.child("prost_now").child(key).removeValue();
+                            }else{
+                                count++;
+                            }
+                        }
                     }
 
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
 
                     @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {}
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+//                        Lisnerの解除
+                        if (dataSnapshot.getKey() == key){
+                            Log.d("prost","removeListner");
+                            myRef.child("prost_now").removeEventListener(this);
+                        }else{
+                            Log.d("prost","removeChild:"+dataSnapshot);
+                            //色変えない
+                            if(!is_first){
+//                                自分のNext_colorの持ち主が消えたことを確認する
+                                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
+                                color = user.now_color;
+                            }
+                        }
+                    }
 
                     @Override
                     public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
@@ -89,16 +114,14 @@ public class MainActivity extends AppCompatActivity {
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-//                        Lisnerの解除
 //                        next_colorを書き換え
 //                        dbの削除
-                        myRef.child("prost_now").removeEventListener(ev);
-                        user.now_color = color;
-                        Log.d("prost","onChildtest"+color);
                         myRef.child("prost_now").child(key).removeValue();
+                        user.now_color = color;
+                        Log.d("prost","onChildtest:"+color);
                         test_tv.setText(""+color);
                     }
-                }, 500);
+                }, 400);
 
             }
         });
@@ -163,7 +186,6 @@ public class MainActivity extends AppCompatActivity {
                     user.userName = userName.getText().toString();
                     user.userKey = key;
                     myRef.child(key).child("userName").setValue(user.userName);
-                    myRef.child(key).child("is_kanpai").setValue(false);
                 }
 
 
