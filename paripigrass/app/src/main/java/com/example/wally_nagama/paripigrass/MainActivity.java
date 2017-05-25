@@ -2,6 +2,7 @@ package com.example.wally_nagama.paripigrass;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton;
+    Button button, roomCreateButton, kanpaiButton;
     EditText editText, userName, roomNumber;
     Context act = this;
     ChildEventListener childEventListener;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
         button = (Button)findViewById(R.id.button);
         roomCreateButton = (Button)findViewById(R.id.userCreate);
+        kanpaiButton = (Button)findViewById(R.id.kanpai);
         editText = (EditText)findViewById(R.id.edittext);
         userName = (EditText)findViewById(R.id.userName);
         roomNumber = (EditText)findViewById(R.id.roomNumber);
@@ -264,6 +266,55 @@ public class MainActivity extends AppCompatActivity {
                     roomCreateButton.setText("JOIN ROOM");
                     user.joined = false;
                 }
+            }
+        });
+
+        //テスト
+        //乾杯
+        kanpaiButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData mutableData) {
+                        if(mutableData.getValue() == null){
+                            mutableData.setValue(user.now_color);
+                            HandlerThread handlerThread = new HandlerThread("foo");
+                            handlerThread.start();
+                            new Handler(handlerThread.getLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // ここに３秒後に実行したい処理
+                                    myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                                        @Override
+                                        public Transaction.Result doTransaction(MutableData mutableData) {
+                                            user.now_color = mutableData.getValue(int.class);
+                                            myRef.child("now_color").setValue(null);
+                                            Log.d("kanpai", "add null!");
+                                            return Transaction.success(mutableData);
+                                        }
+                                        @Override
+                                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                        }
+                                    });
+                                }
+                            }, 50);
+
+                        }else{
+                            int temp = user.now_color;
+                            user.now_color = mutableData.getValue(int.class);
+                            myRef.child("now_color").setValue(temp);
+                            Log.d("kanpai", "add now_color!");
+                        }
+                        return Transaction.success(mutableData);
+                    }
+
+
+
+                    @Override
+                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                    }
+                });
             }
         });
     }
