@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton, btListButton, btSearchButton, connectButton1, allow_searched, lightOnLed, lightOffLed;
+    Button button, roomCreateButton, btListButton, lightOnLed, lightOffLed;
     EditText editText, userName, roomNumber;
     TextView btText, deviceText;
     int userNum;
@@ -77,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     ArrayList<String> itemArray = new ArrayList<String>();
     ArrayList<String> mArrayAdapter = new ArrayList<String>();
     final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
-    private String deviceName;
 
     /* tag */
     private static final String TAG = "BluetoothSample";
@@ -126,8 +125,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
     /** BluetoothのOutputStream. */
     OutputStream mmOutputStream = null;
-
-
 
 
     @Override
