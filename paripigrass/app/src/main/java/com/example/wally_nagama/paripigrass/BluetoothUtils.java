@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by wally_nagama on 2017/05/24.
+ * Created by wally_nagama on 2017/05/26.
  */
 
 public class BluetoothUtils {
@@ -116,9 +116,8 @@ public class BluetoothUtils {
         uuidsDescriptions.put("1204", "GenericTelephonyService");
     }
 
-
     public static ArrayList<ParcelUuid> getDeviceUuids(BluetoothDevice device) {
-        ArrayList<ParcelUuid> result = new ArrayList<>();
+        ArrayList<ParcelUuid> result = new ArrayList<ParcelUuid>();
 
         try {
             Method method = device.getClass().getMethod("getUuids", null);
@@ -142,7 +141,6 @@ public class BluetoothUtils {
 
         return result;
     }
-
 
 
     private static ArrayList<String> getDeviceServices(ArrayList<ParcelUuid> uuids) {
@@ -173,7 +171,6 @@ public class BluetoothUtils {
         ArrayList<ParcelUuid> uuids = getDeviceUuids(device);
         return getDeviceServices(uuids);
     }
-
 
     /**
      * see http://habrahabr.ru/post/144547/
