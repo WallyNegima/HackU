@@ -58,4 +58,6 @@ public class DeviceData {
     public int getBondState() {
         return bondState;
     }
+
+
 }
