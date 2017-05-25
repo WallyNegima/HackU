@@ -321,17 +321,10 @@ public class MainActivity extends AppCompatActivity {
                 /*---   ルーレット   */
                     case "ルーレットモード":
                         Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
-                        Intent intent3 = new Intent(this, Roulette.class);
-                        startActivity(intent3);
                         break;
 
                     case "ルーレット":
                         Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
-                        // ルーレットへのインテント
-                        Intent intent2 = new Intent(this, PartyActivity.class);
-                        startActivity(intent2);
-
-
                         break;
 
 
