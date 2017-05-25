@@ -201,16 +201,6 @@ public class MainActivity extends AppCompatActivity {
         txvAction = (TextView) findViewById(R.id.amin_txvAction);
         txvRec = (TextView) findViewById(R.id.txv_recog);
 
-        /*---    へーへーボタンリスナー ---*/
-        findViewById(R.id.amin_heybutton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                txvAction.setText(R.string.amin_heybutton);
-                //Toast.makeText(context, "乾杯", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
 
 
         /*---     音声認識リスナー   ----*/
