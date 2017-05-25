@@ -24,6 +24,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -50,11 +51,12 @@ public class MainActivity extends AppCompatActivity {
     public static final int MESSAGE_WRITE = 3;
     public static final int MESSAGE_DEVICE_NAME = 4;
     public static final int MESSAGE_TOAST = 5;
+    public static final int REQUEST_ENABLE_BT = 6;
     
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton, btListButton, btSearchButton, connectButton;
+    Button button, roomCreateButton, btListButton, btSearchButton, connectButton, allow_searched;
     EditText editText, userName, roomNumber;
     TextView btText, deviceText;
     int userNum;
@@ -65,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     BlueToothReceiver btReceiver;
     List<BluetoothDevice> devices;
     ArrayList<String> itemArray = new ArrayList<String>();
+    ArrayList<String> mArrayAdapter = new ArrayList<String>();
     final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
     String devList = "";
     private String deviceName;
@@ -81,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         button = (Button)findViewById(R.id.button);
         editText = (EditText)findViewById(R.id.edittext);
 
+        allow_searched = (Button)findViewById(R.id.amin_allow_searched);
         roomCreateButton = (Button)findViewById(R.id.userCreate);
         btListButton = (Button)findViewById(R.id.btbutton);
         btSearchButton = (Button)findViewById(R.id.search_bt);
@@ -99,12 +103,30 @@ public class MainActivity extends AppCompatActivity {
         //デバイスを検索する
         btReceiver = new BlueToothReceiver(this, devList, btText);
         btReceiver.register();
+//      BlueTooth取得
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter.isEnabled()) {
             Log.d("bt", "bt ok");
         }else{
             Log.d("bt", "bt ng");
+//          BlueToothの有効化を要求
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
+
+
+        //---------------------------- 他のデバイスから検出されるのを可能にするボタン
+        allow_searched.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+                discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 60);
+                startActivity(discoverableIntent);
+            }
+        });
+
+
+
 
         btListButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -113,10 +135,15 @@ public class MainActivity extends AppCompatActivity {
                 itemArray.clear();
                 // ペアリング済みのデバイス一覧を取得
                 Set<BluetoothDevice> btDevices = btAdapter.getBondedDevices();
-                for (BluetoothDevice device : btDevices) {
-                    devList += device.getName() + "(" + getBondState(device.getBondState()) + ")\n";
-                    itemArray.add(device.getName());
-                    devices.add(device);
+                if(btDevices.size() > 0) {
+                    for (BluetoothDevice device : btDevices) {
+                        devList += device.getName() + "(" + getBondState(device.getBondState()) + ")\n";
+                        itemArray.add(device.getName());
+                        devices.add(device);
+
+                        mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+
+                    }
                 }
 
                 btText.setText(devList);
