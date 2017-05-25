@@ -5,48 +5,25 @@ import android.content.Context;
 import android.content.Intent;
 import android.speech.RecognizerIntent;
 import android.support.annotation.*;
-import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 
-import org.w3c.dom.Comment;
-
-import java.util.HashMap;
-import java.util.Map;
-
 public class MainActivity extends AppCompatActivity {
-    User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton;
-    EditText editText, userName, roomNumber;
-    Context act = this;
-    ChildEventListener childEventListener;
-    String key;
-    int color;
-    TextView test_tv;
+    DatabaseReference myRef = database.getReference("message");
 
     // 音声認識で使うよーんwwwwww
     private TextView txvAction;
@@ -63,137 +40,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        context = this;
-        button = (Button)findViewById(R.id.button);
-        roomCreateButton = (Button)findViewById(R.id.userCreate);
-        editText = (EditText)findViewById(R.id.edittext);
-        userName = (EditText)findViewById(R.id.userName);
-        roomNumber = (EditText)findViewById(R.id.roomNumber);
-        test_tv = (TextView)findViewById(R.id.test_tv);
 
-        user = new User();
-
-        //user追加
-        button.setOnClickListener(new View.OnClickListener(){
+        myRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onClick(View v){
-                user.now_color = Integer.valueOf(editText.getText().toString());
-                myRef.child("prost_now").child(key).child("now_color").setValue(user.now_color);
-                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
-                final ChildEventListener ev =new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                        自分が一番乗りのとき
-//                        next_colorは一回だけ変える
-                        if(dataSnapshot.getKey() == key){
-                            return;
-                        }
-                        Log.d("prost", "onChildAdded:" + dataSnapshot);
-                        if (dataSnapshot.child("next_color") == null) {
-                            return;
-                        }
-//                      自身のnext_colorをdataSnap.Child("now_color")に変更
-                        color = dataSnapshot.child("next_color").getValue(int.class);
-                    }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {}
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {}
-                };
-                myRef.child("prost_now").addChildEventListener(ev);
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-//                        Lisnerの解除
-//                        next_colorを書き換え
-//                        dbの削除
-                        myRef.child("prost_now").removeEventListener(ev);
-                        user.now_color = color;
-                        Log.d("prost","onChildtest"+color);
-                        myRef.child("prost_now").child(key).removeValue();
-                        test_tv.setText(""+color);
-                    }
-                }, 500);
-
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                String value = dataSnapshot.getValue(String.class);
+                Log.d("a", "Value is: " + value);
             }
+
+            @Override public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w("a", "Failed to read value.", error.toException());}
         });
 
-        //roomを作成する
-        roomCreateButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-
-                String roomId = roomNumber.getText().toString();
-                Room room = new Room(roomId);
-                myRef = database.getReference("room" + roomId);
-
-                //ユーザーのリストなどを見張る
-                childEventListener = new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                        Log.d("a", "onChildAdded:" + dataSnapshot);
-                    }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                        Log.d("a", "onChildChanged:" + dataSnapshot);
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-                        Log.d("a", "onChildRemoved:" + dataSnapshot);
-
-                        if(dataSnapshot.child("userID").getValue() == null){
-                            return;
-                        }
-
-                        int id = dataSnapshot.child("userID").getValue(int.class);
-                        if(id < user.userId){
-                            user.userId --;
-                            Map<String, Object> childUpdates = new HashMap<>();
-                            childUpdates.put("/"+ key + "/userID", user.userId );
-                            myRef.updateChildren(childUpdates);
-                        }
-                    }
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-                        Log.d("a", "onChildMoved:" + dataSnapshot.getKey());
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Log.w("a", "postComments:onCancelled", databaseError.toException());
-                        Toast.makeText(act, "Failed to load comments.",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                };
-
-                if(user.joined){
-                    //すでに部屋に入っているので何もしない
-                }else{
-                    myRef.addChildEventListener(childEventListener);
-                    user.joined = true;
-                    key = myRef.push().getKey();
-                    registUserID(key,myRef,user);
-                    user.userName = userName.getText().toString();
-                    user.userKey = key;
-                    myRef.child(key).child("userName").setValue(user.userName);
-                    myRef.child(key).child("is_kanpai").setValue(false);
-                }
-
-
-            }
-        });
 
 
         txvAction = (TextView) findViewById(R.id.amin_txvAction);
@@ -241,9 +102,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-    }
+    };
 
-    ;
+
+
+
+
+
+
 
 
     /*---       startActivityForResultで起動したアクティビティが終了した時に呼び出される関数   ---*/
@@ -309,47 +175,14 @@ public class MainActivity extends AppCompatActivity {
 
                 }
 
-            }
-
-            //super.onActivityResult(requestCode, resultCode, data);    ---1
-
-            // 認識後
-            //checkResult.returnCharacter();
-
         }
 
+        //super.onActivityResult(requestCode, resultCode, data);    ---1
+
+        // 認識後
+        checkResult.returnCharacter();
 
     }
 
-    private void registUserID(final String key, final DatabaseReference databaseReference, final User user){
-        final Query query = databaseReference.orderByChild("userID").limitToLast(1);
-        query.addChildEventListener(new ChildEventListener(){
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                int id;
-                if(dataSnapshot.child("userID").getValue(int.class) == null){
-                    //誰もおらんとき
-                    id = 0;
-                }else{
-                    id = dataSnapshot.child("userID").getValue(int.class)+1;
-                }
-                databaseReference.child(key).child("userID").setValue(id);
-                user.userId = id;
-                Log.d("registID", "onChildAdded:" + dataSnapshot);
-                query.removeEventListener(this);
-            }
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {}
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        });
-    }
 }
