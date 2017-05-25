@@ -64,76 +64,6 @@ public class MainActivity extends AppCompatActivity {
                 Random rnd = new Random();
                 myRef.child("Roulette").child("light_now").setValue(1);
                 myRef.child("Roulette").child("count").setValue(rnd.nextInt(5)+10);
-
-//                myRef.child("prost_now").child(key).child("now_color").setValue(user.now_color);
-//                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
-//                final ChildEventListener ev =new ChildEventListener() {
-//                    int count = 0;
-//                    boolean is_first = false;
-//                    @Override
-//                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                        Log.d("prost", "onChildAdded:All:" + dataSnapshot);
-////                        自分が一番乗りのとき
-//                        if (count == 0 && dataSnapshot.getKey() == key){
-//                            is_first = true;
-//                        }
-//                        if(dataSnapshot.getKey() == key){
-//                            return;
-//                        }
-//                        Log.d("prost", "onChildAdded:" + dataSnapshot);
-//                        if (dataSnapshot.child("now_color").getValue() != null) {
-////                      自身のnext_colorをdataSnap.Child("now_color")に変更
-//                            color = dataSnapshot.child("now_color").getValue(int.class);
-//                            myRef.child("prost_now").child(key).child("next_color").setValue(color);
-//                            if(is_first){
-////                              next_colorは一回だけ変える
-//                                myRef.child("prost_now").child(key).removeValue();
-//                                Log.d("prost","removeValue_Iam_first");
-//                            }else{
-//                                count++;
-//                            }
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-//
-//                    @Override
-//                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-////                        Lisnerの解除
-//                        if (dataSnapshot.getKey().equals(key)){
-//                            Log.d("prost","removeListner");
-//                            myRef.child("prost_now").removeEventListener(this);
-//                        }else{
-//                            Log.d("prost","removeChild:"+dataSnapshot);
-//                            if(!is_first){
-////                                自分のNext_colorの持ち主が消えたことを確認する
-//                                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
-//                                color = user.now_color;
-//                            }
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-//
-//                    @Override
-//                    public void onCancelled(DatabaseError databaseError) {}
-//                };
-//                myRef.child("prost_now").addChildEventListener(ev);
-//                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-////                        next_colorを書き換え
-////                        dbの削除
-//                        myRef.child("prost_now").child(key).removeValue();
-//                        Log.d("prost","removeValue");
-//                        user.now_color = color;
-//                        Log.d("prost","onChildtest:"+color);
-//                        test_tv.setText(""+color);
-//                    }
-//                }, 400);
-//
             }
         });
 
@@ -352,6 +282,7 @@ public class MainActivity extends AppCompatActivity {
                                         public Transaction.Result doTransaction(MutableData mutableData) {
                                             user.now_color = mutableData.getValue(int.class);
                                             myRef.child("now_color").setValue(null);
+                                            test_tv.setText(user.now_color + "!");
                                             Log.d("kanpai", "add null!");
                                             return Transaction.success(mutableData);
                                         }
@@ -366,13 +297,11 @@ public class MainActivity extends AppCompatActivity {
                             int temp = user.now_color;
                             user.now_color = mutableData.getValue(int.class);
                             myRef.child("now_color").setValue(temp);
+                            test_tv.setText(user.now_color + "!");
                             Log.d("kanpai", "add now_color!");
                         }
                         return Transaction.success(mutableData);
                     }
-
-
-
                     @Override
                     public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
                     }
