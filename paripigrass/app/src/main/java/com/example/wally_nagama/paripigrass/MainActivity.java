@@ -158,7 +158,6 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
-
                             //userが部屋からいなくなったときの処理
                             if(dataSnapshot.child("userId").getValue() != null) {
                                 removedUserId = dataSnapshot.child("userId").getValue(int.class);
@@ -200,7 +199,6 @@ public class MainActivity extends AppCompatActivity {
                                                     }
                                                 });
                                             }
-//                                        }
                                         return Transaction.success(mutableData);
                                     }
 
@@ -237,7 +235,9 @@ public class MainActivity extends AppCompatActivity {
                         roomCreateButton.setText("部屋を退出する");
                     }
                 }else if(user.joined == true){
-                    //すでに部屋に入ってたら
+                    //すでに部屋に入っているときの処理
+                    //退出する
+                    //部屋の人数 numberOfUserをデクリメントして，自分自身のremoveする．
                     myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
                         @Override
                         public Transaction.Result doTransaction(MutableData mutableData) {
@@ -269,6 +269,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registUserID(final DatabaseReference databaseReference, final User user){
+        //部屋に入る時，部屋の人数に合わせてuserIdを決める
         databaseReference.child("numberOfUser").runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
