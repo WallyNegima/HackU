@@ -221,14 +221,30 @@ public class MainActivity extends AppCompatActivity {
 
                             @Override
                             public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
                                 if (b) {
-                                    if(myRef.child("numberOfUser").equals(user.userId+1)){
-                                        //自分が最後尾のuserになったらnextUserIdは先頭の人を指す
-                                        user.nextUserId = 1;
-                                    }
-                                    String logMessage = dataSnapshot.getValue().toString();
-                                    Log.d("testRunTran", "counter: " + logMessage);
+                                    //自分のuserId，nextUserIdをデクリメントした後に
+                                    //自分が最後尾のユーザーであれば，nextUserIdを1に設定する
+                                    myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
+                                        @Override
+                                        public Transaction.Result doTransaction(MutableData mutableData) {
+                                            if(user.userId ==mutableData.getValue(int.class)){
+                                                user.nextUserId = 1;
+                                                Log.d("weryy user", "id:" + String.valueOf(user.userId) + " next:" + String.valueOf(user.nextUserId));
+                                            }
+                                            return null;
+                                        }
+
+                                        @Override
+                                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                                            if (b) {
+                                                String logMessage = dataSnapshot.getValue().toString();
+                                                Log.d("testRunTran1", "counter: " + logMessage);
+                                            } else {
+                                                Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
+                                            }
+                                        }
+                                    });
                                 } else {
                                     Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
                                 }
@@ -288,7 +304,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if (b) {
                     String logMessage = dataSnapshot.getValue().toString();
-                    Log.d("testRunTran", "counter: " + logMessage);
+                    Log.d("regist user", "nextuserid: " + user.nextUserId);
+
                 } else {
                     Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
                 }
