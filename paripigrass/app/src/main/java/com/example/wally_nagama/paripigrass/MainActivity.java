@@ -77,15 +77,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     ArrayList<String> itemArray = new ArrayList<String>();
     ArrayList<String> mArrayAdapter = new ArrayList<String>();
     final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
-    String devList = "";
     private String deviceName;
-
-
-    private static BluetoothResponseHandler mHandler1;
-    public DeviceConnector connector;
-    private Set pairedDevices;
-    ListView devicelist;
-
 
     /* tag */
     private static final String TAG = "BluetoothSample";
@@ -142,27 +134,22 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        //テストボタン
         button = (Button)findViewById(R.id.button);
         editText = (EditText)findViewById(R.id.edittext);
 
-        allow_searched = (Button)findViewById(R.id.amin_allow_searched);
-        roomCreateButton = (Button)findViewById(R.id.userCreate);
-        btListButton = (Button)findViewById(R.id.btbutton);
-        btSearchButton = (Button)findViewById(R.id.search_bt);
-        connectButton1 = (Button)findViewById(R.id.connect);
-        lightOnLed = (Button)findViewById(R.id.amin_light_on_led);
-        lightOffLed = (Button)findViewById(R.id.amin_light_off_led);
-        userName = (EditText)findViewById(R.id.userName);
-        roomNumber = (EditText)findViewById(R.id.roomNumber);
-        btText = (TextView)findViewById(R.id.bt_text);
-        deviceText = (TextView)findViewById(R.id.device);
+        roomCreateButton = (Button)findViewById(R.id.userCreate); //部屋を作る･退出する
+        btListButton = (Button)findViewById(R.id.btbutton); //ペアリングしているbt機器をダイアログで表示･接続する機器を選択
+        lightOnLed = (Button)findViewById(R.id.amin_light_on_led); //LEDを光らせる
+        lightOffLed = (Button)findViewById(R.id.amin_light_off_led); //LEDoffにする
+        userName = (EditText)findViewById(R.id.userName); //部屋に入る時のユーザー名
+        roomNumber = (EditText)findViewById(R.id.roomNumber); //入る部屋の番号
+        btText = (TextView)findViewById(R.id.bt_text); //ペアリングしている機器一覧
+        deviceText = (TextView)findViewById(R.id.device); //わからない
         userNum = 0;
-        mHandler1 = new BluetoothResponseHandler(this);
         devices1 = new ArrayList<>();
 
         user = new User();
-
 
         //--------------BlueToothLED
         mInputTextView = (TextView)findViewById(R.id.inputValue);
@@ -181,11 +168,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             }
         }
 
-
-        //btlistを表示
-        //デバイスを検索する
-        btReceiver = new BlueToothReceiver(this, devList, btText);
-        btReceiver.register();
 //      BlueTooth取得
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter.isEnabled()) {
@@ -197,49 +179,32 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
 
-
-        //---------------------------- 他のデバイスから検出されるのを可能にするボタン
-        allow_searched.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 60);
-                startActivity(discoverableIntent);
-            }
-        });
-
-
-
-
         btListButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                devList = "";
                 itemArray.clear();
                 // ペアリング済みのデバイス一覧を取得
                 Set<BluetoothDevice> btDevices = btAdapter.getBondedDevices();
                 if(btDevices.size() > 0) {
                     for (BluetoothDevice device1 : btDevices) {
-                        devList += device1.getName() + "(" + getBondState(device1.getBondState()) + ")\n";
                         itemArray.add(device1.getName());
                         devices1.add(device1);
-
                         mArrayAdapter.add(device1.getName() + "\n" + device1.getAddress());
 
                     }
                 }
-
-                btText.setText(devList);
+                //接続するデバイスを選択してもらうためにダイアログを表示
                 String[] items = (String[])itemArray.toArray(new String[0]);
                 int defaultItem = 0; // デフォルトでチェックされているアイテム
                 checkedItems.add(defaultItem);
                 new AlertDialog.Builder(act)
-                        .setTitle("Selector")
+                        .setTitle("Selector") //ダイアログのタイトル
                         .setSingleChoiceItems(items, defaultItem, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                //選択したら．．．
                                 checkedItems.clear();
-                                checkedItems.add(which);
+                                checkedItems.add(which); //checkedItems の0番目に選んだデバイスのindexが入る
                             }
                         })
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -253,21 +218,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         })
                         .setNegativeButton("Cancel", null)
                         .show();
-            }
-        });
-
-        btSearchButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                if(!btAdapter.isDiscovering()){
-                    btAdapter.startDiscovery();
-                    Log.d("bt", "start!!");
-                }else{
-                    btAdapter.cancelDiscovery();
-                    Log.d("bt", "stop");
-                    btAdapter.startDiscovery();
-                    Log.d("bt", "and start!!");
-                }
             }
         });
 
@@ -355,18 +305,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             }
         });
 
-        //機器とコネクトする
-        connectButton1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setupConnector(devices1.get(checkedItems.get(0)));
-
-            }
-        });
-
-
-
-
         /*-------------------------　LEDを光らす------------------*/
         lightOnLed.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -389,8 +327,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         startActivityForResult(turnBTon,1);
                     }
                 }
-
-
             }
         });
     }
@@ -420,85 +356,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         }
         return strState;
     }
-    private void stopConnection() {
-        if (connector != null) {
-            connector.stop();
-            connector = null;
-            deviceName = null;
-        }
-    }
 
-    private void setupConnector(BluetoothDevice connectedDevice) {
-        stopConnection();
-        try {
-            String emptyName = "empty_device_name";
-            DeviceData data = new DeviceData(connectedDevice, emptyName);
-            connector = new DeviceConnector(data, mHandler1);
-            connector.connect();
-        } catch (IllegalArgumentException e) {
-            //Utils.log("setupConnector failed: " + e.getMessage());
-        }
-    }
-
-    private static class BluetoothResponseHandler extends Handler {
-        private WeakReference<MainActivity> mActivity;
-
-        public BluetoothResponseHandler(MainActivity activity) {
-            mActivity = new WeakReference<MainActivity>(activity);
-        }
-
-        public void setTarget(MainActivity target) {
-            mActivity.clear();
-            mActivity = new WeakReference<MainActivity>(target);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity activity = mActivity.get();
-            if (activity != null) {
-                switch (msg.what) {
-                    case MESSAGE_STATE_CHANGE:
-
-                        //Utils.log("MESSAGE_STATE_CHANGE: " + msg.arg1);
-                        final ActionBar bar = activity.getActionBar();
-                        switch (msg.arg1) {
-                            case DeviceConnector.STATE_CONNECTED:
-                                bar.setSubtitle("connected");
-                                break;
-                            case DeviceConnector.STATE_CONNECTING:
-                                bar.setSubtitle("connecting");
-                                break;
-                            case DeviceConnector.STATE_NONE:
-                                bar.setSubtitle("not_connected");
-                                break;
-                        }
-                        activity.invalidateOptionsMenu();
-                        break;
-
-                    case MESSAGE_READ:
-                        final String readMessage = (String) msg.obj;
-                        if (readMessage != null) {
-                            //activity.appendLog(readMessage, false, false, activity.needClean);
-                        }
-                        break;
-
-                    case MESSAGE_DEVICE_NAME:
-                        activity.deviceName = (String) msg.obj;
-                        break;
-
-                    case MESSAGE_WRITE:
-                        // stub
-                        break;
-
-                    case MESSAGE_TOAST:
-                        // stub
-                        break;
-                }
-            }
-        }
-
-
-    }
 
     @Override
     protected void onPause() {
@@ -615,6 +473,4 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             }
         }
     };
-
-
 }
