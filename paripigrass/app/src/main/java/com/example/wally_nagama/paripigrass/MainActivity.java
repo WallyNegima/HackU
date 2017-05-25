@@ -126,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
                         test_tv.setText(""+color);
                     }
                 }, 400);
-
             }
         });
 
@@ -151,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
                                     Log.d("nextUserID","at 151:: "+user.nextUserId);
                                 }
                             }
-
                         }
 
                         @Override
@@ -167,9 +165,6 @@ public class MainActivity extends AppCompatActivity {
                                 myRef.child(user.userKey).child("userId").runTransaction(new Transaction.Handler() {
                                     @Override
                                     public Transaction.Result doTransaction(MutableData mutableData) {
-//                                        if(mutableData.getValue() == null){
-//                                            //userIdがnullのときの処理だが、必要ないはず
-//                                        }else{
                                             if(mutableData.getValue(int.class) > removedUserId ){
                                                 //自分よりも先に部屋に入った人が抜けたらuserId nextUserIdをデクリメント
                                                 user.userId--;
@@ -204,8 +199,6 @@ public class MainActivity extends AppCompatActivity {
                                                         }
                                                     }
                                                 });
-
-
                                             }
 //                                        }
                                         return Transaction.success(mutableData);
@@ -220,8 +213,6 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 });
                             }
-
-
                         }
 
                         @Override
@@ -272,9 +263,7 @@ public class MainActivity extends AppCompatActivity {
                     myRef.removeEventListener(childEventListener);
                     roomCreateButton.setText("JOIN ROOM");
                     user.joined = false;
-
                 }
-
             }
         });
     }
