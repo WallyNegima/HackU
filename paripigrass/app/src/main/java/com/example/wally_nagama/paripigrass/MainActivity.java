@@ -249,7 +249,8 @@ public class MainActivity extends AppCompatActivity {
 
                      @Override
                      public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                         myRef.child("light_now").child(key).child("color").setValue(user.now_color);
+                         myRef.child("light_now").setValue(user.now_color);
+
 
                          new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                              @Override
@@ -310,28 +311,28 @@ public class MainActivity extends AppCompatActivity {
 
                 /*---   ルーレット   */
                     case "ルーレットモード":
-                        Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "ルーレットモード", Toast.LENGTH_LONG).show();
                         break;
 
                     case "ルーレット":
-                        Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "ルーレットモード", Toast.LENGTH_LONG).show();
                         break;
 
 
                 /*---   司会者   ---*/
                     case "司会者になりました":
-                        Toast.makeText(context, R.string.amin_speech, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "司会者になりました", Toast.LENGTH_LONG).show();
                         break;
                     case "司会者":
-                        Toast.makeText(context, R.string.amin_speech, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "司会者になりました", Toast.LENGTH_LONG).show();
                         break;
 
                 /*---   一気飲み   ---*/
                     case "一気飲み":
-                        Toast.makeText(context, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "一気飲み", Toast.LENGTH_LONG).show();
                         break;
                     case "一気飲みします":
-                        Toast.makeText(context, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "一気飲み", Toast.LENGTH_LONG).show();
                         break;
 
 
