@@ -295,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
             connector = new DeviceConnector(data, mHandler);
             connector.connect();
         } catch (IllegalArgumentException e) {
-            //Utils.log("setupConnector failed: " + e.getMessage());
+            Utils.log("setupConnector failed: " + e.getMessage());
         }
     }
 
