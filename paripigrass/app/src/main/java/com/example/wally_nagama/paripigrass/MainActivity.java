@@ -281,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public Transaction.Result doTransaction(MutableData mutableData) {
                                             user.now_color = mutableData.getValue(int.class);
-                                            myRef.child("now_color").setValue(null);
+                                            myRef.child("now_color").removeValue();
                                             test_tv.setText(user.now_color + "!");
                                             Log.d("kanpai", "add null!");
                                             return Transaction.success(mutableData);
@@ -291,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     });
                                 }
-                            }, 50);
+                            }, 200);
 
                         }else{
                             int temp = user.now_color;
