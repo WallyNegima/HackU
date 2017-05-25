@@ -40,11 +40,11 @@ public class MainActivity extends AppCompatActivity {
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton;
+    Button button, roomCreateButton, startRoulette;
     EditText editText, userName, roomNumber;
     Context act = this;
     ChildEventListener childEventListener;
-    ChildEventListener childEventListener1;
+    ChildEventListener childEventListener_now_light;
     String key;
     int color;
     TextView test_tv;
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         context = this;
         button = (Button)findViewById(R.id.button);
         roomCreateButton = (Button)findViewById(R.id.userCreate);
+        startRoulette = (Button)findViewById(R.id.amin_roulette);
         editText = (EditText)findViewById(R.id.edittext);
         userName = (EditText)findViewById(R.id.userName);
         roomNumber = (EditText)findViewById(R.id.roomNumber);
@@ -234,45 +235,44 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+//---------------------------------------------------------　　　　　　ルーレット
+         findViewById(R.id.amin_roulette).setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View v) {
 
-        //---------------------------------------------------リスナーテスト
-        childEventListener1 = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                txv_roulette.setText("追加されました");
+                 childEventListener_now_light = new ChildEventListener() {
+                     @Override
+                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                         txv_roulette.setText("追加されました");
 
-            }
+                     }
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                myRef.child("light_now").child(key).child("color").setValue(user.now_color);
+                     @Override
+                     public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+                         myRef.child("light_now").child(key).child("color").setValue(user.now_color);
 
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        //txv_roulette.setText("ルーレットを開始します");
+                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                             @Override
+                             public void run() {
+                                 txv_roulette.setText("変更されました");
+                             }
+                         }, 2000);
+                     }
 
-                        txv_roulette.setText("変更されました");
-                    }
-                }, 2000);
-            }
+                     @Override
+                     public void onChildRemoved(DataSnapshot dataSnapshot) {}
 
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                     @Override
+                     public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
 
-            }
+                     @Override
+                     public void onCancelled(DatabaseError databaseError) {}
+                 };
+                 myRef.child("light_now").addChildEventListener(childEventListener_now_light);
 
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+             }
+         });
 
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-        myRef.child("room8080").addChildEventListener(childEventListener1);
 
 
     }
@@ -384,5 +384,46 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    }
+
+    private void roulette() {
+
+        childEventListener_now_light = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                txv_roulette.setText("追加されました");
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+                myRef.child("light_now").child(key).child("color").setValue(user.now_color);
+
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        //txv_roulette.setText("ルーレットを開始します");
+
+                        txv_roulette.setText("変更されました");
+                    }
+                }, 2000);
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+        myRef.child("light_now").addChildEventListener(childEventListener_now_light);
     }
 }
