@@ -2,6 +2,7 @@ package com.example.wally_nagama.paripigrass;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -32,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton;
+    Button button, roomCreateButton, kanpaiButton;
     EditText editText, userName, roomNumber;
     Context act = this;
     ChildEventListener childEventListener;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
         button = (Button)findViewById(R.id.button);
         roomCreateButton = (Button)findViewById(R.id.userCreate);
+        kanpaiButton = (Button)findViewById(R.id.kanpai);
         editText = (EditText)findViewById(R.id.edittext);
         userName = (EditText)findViewById(R.id.userName);
         roomNumber = (EditText)findViewById(R.id.roomNumber);
@@ -218,19 +220,14 @@ public class MainActivity extends AppCompatActivity {
 
                         }
 
-
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
-
                             //userが部屋からいなくなったときの処理
                             if(dataSnapshot.child("userId").getValue() != null) {
                                 removedUserId = dataSnapshot.child("userId").getValue(int.class);
                                 myRef.child(user.userKey).child("userId").runTransaction(new Transaction.Handler() {
                                     @Override
                                     public Transaction.Result doTransaction(MutableData mutableData) {
-//                                        if(mutableData.getValue() == null){
-//                                            //userIdがnullのときの処理だが、必要ないはず
-//                                        }else{
                                             if(mutableData.getValue(int.class) > removedUserId ){
                                                 //自分よりも先に部屋に入った人が抜けたらuserId nextUserIdをデクリメント
                                                 user.userId--;
@@ -265,10 +262,7 @@ public class MainActivity extends AppCompatActivity {
                                                         }
                                                     }
                                                 });
-
-
                                             }
-//                                        }
                                         return Transaction.success(mutableData);
                                     }
 
@@ -281,8 +275,6 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 });
                             }
-
-
                         }
 
                         @Override
@@ -307,7 +299,9 @@ public class MainActivity extends AppCompatActivity {
                         roomCreateButton.setText("部屋を退出する");
                     }
                 }else if(user.joined == true){
-                    //すでに部屋に入ってたら
+                    //すでに部屋に入っているときの処理
+                    //退出する
+                    //部屋の人数 numberOfUserをデクリメントして，自分自身のremoveする．
                     myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
                         @Override
                         public Transaction.Result doTransaction(MutableData mutableData) {
@@ -333,14 +327,62 @@ public class MainActivity extends AppCompatActivity {
                     myRef.removeEventListener(childEventListener);
                     roomCreateButton.setText("JOIN ROOM");
                     user.joined = false;
-
                 }
+            }
+        });
 
+        //テスト
+        //乾杯
+        kanpaiButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData mutableData) {
+                        if(mutableData.getValue() == null){
+                            mutableData.setValue(user.now_color);
+                            HandlerThread handlerThread = new HandlerThread("foo");
+                            handlerThread.start();
+                            new Handler(handlerThread.getLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // ここに３秒後に実行したい処理
+                                    myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                                        @Override
+                                        public Transaction.Result doTransaction(MutableData mutableData) {
+                                            user.now_color = mutableData.getValue(int.class);
+                                            myRef.child("now_color").setValue(null);
+                                            Log.d("kanpai", "add null!");
+                                            return Transaction.success(mutableData);
+                                        }
+                                        @Override
+                                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                        }
+                                    });
+                                }
+                            }, 50);
+
+                        }else{
+                            int temp = user.now_color;
+                            user.now_color = mutableData.getValue(int.class);
+                            myRef.child("now_color").setValue(temp);
+                            Log.d("kanpai", "add now_color!");
+                        }
+                        return Transaction.success(mutableData);
+                    }
+
+
+
+                    @Override
+                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                    }
+                });
             }
         });
     }
 
     private void registUserID(final DatabaseReference databaseReference, final User user){
+        //部屋に入る時，部屋の人数に合わせてuserIdを決める
         databaseReference.child("numberOfUser").runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
