@@ -7,25 +7,11 @@
     android:orientation="vertical"
     tools:context="com.example.wally_nagama.paripigrass.MainActivity">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
     <TextView
         android:id="@+id/txv_recog"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hello World!"
-            android:id="@+id/test_tv"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
 
     <Button
@@ -48,41 +34,6 @@
 
 
 
-</LinearLayout>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <EditText
-                android:id="@+id/edittext"
-                android:layout_width="400px"
-                android:layout_height="wrap_content" />
-
-            <Button
-                android:id="@+id/button"
-                android:text="send"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-        </LinearLayout>
-        <EditText
-            android:id="@+id/roomNumber"
-            android:layout_width="400px"
-            android:layout_height="wrap_content"
-            android:hint="roomNumber"
-            android:digits="1234567890"
-            />
-        <EditText
-            android:id="@+id/userName"
-            android:layout_width="400px"
-            android:layout_height="wrap_content"
-            android:hint="username"
-            />
-
-        <Button
-            android:id="@+id/userCreate"
-            android:text="join room"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
 
 
 

@@ -22,8 +22,6 @@ import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference("message");
 
     // 音声認識で使うよーんwwwwww
     private TextView txvAction;
@@ -38,22 +36,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                String value = dataSnapshot.getValue(String.class);
-                Log.d("a", "Value is: " + value);
-            }
-
-            @Override public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w("a", "Failed to read value.", error.toException());}
-        });
 
 
 
@@ -102,14 +84,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-    };
+    }
 
-
-
-
-
-
-
+    ;
 
 
     /*---       startActivityForResultで起動したアクティビティが終了した時に呼び出される関数   ---*/
@@ -134,55 +111,50 @@ public class MainActivity extends AppCompatActivity {
                 switch (result_voce) {
                 /*---   乾杯   ---*/
                     case "乾杯します":
-                        Toast.makeText(context, "乾杯！！", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
                         break;
                     case "乾杯":
-                        Toast.makeText(context, "乾杯！！", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
                         break;
 
                 /*---   ルーレット   */
                     case "ルーレットモード":
-                        Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
-                        Intent intent3 = new Intent(this, Roulette.class);
-                        startActivity(intent3);
+                        Toast.makeText(this, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
                         break;
 
                     case "ルーレット":
-                        Toast.makeText(context, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
-                        // ルーレットへのインテント
-                        Intent intent2 = new Intent(this, Roulette.class);
-                        startActivity(intent2);
+                        Toast.makeText(this, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
                         break;
 
 
                 /*---   司会者   ---*/
                     case "司会者になりました":
-                        Toast.makeText(context, R.string.amin_speech, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, R.string.amin_speech, Toast.LENGTH_LONG).show();
                         break;
                     case "司会者":
-                        Toast.makeText(context, R.string.amin_speech, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, R.string.amin_speech, Toast.LENGTH_LONG).show();
                         break;
 
                 /*---   一気飲み   ---*/
                     case "一気飲み":
-                        Toast.makeText(context, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
                         break;
                     case "一気飲みします":
-                        Toast.makeText(context, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
                         break;
-
 
 
                 }
 
+            }
+
+            //super.onActivityResult(requestCode, resultCode, data);    ---1
+
+            // 認識後
+            //checkResult.returnCharacter();
+
         }
 
-        //super.onActivityResult(requestCode, resultCode, data);    ---1
-
-        // 認識後
-        checkResult.returnCharacter();
 
     }
-
-
 }
