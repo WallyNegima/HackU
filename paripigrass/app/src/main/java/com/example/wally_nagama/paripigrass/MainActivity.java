@@ -141,121 +141,91 @@ public class MainActivity extends AppCompatActivity {
 
                     //ユーザーのリストなどを見張る
                     childEventListener = new ChildEventListener() {
+                        int count = 0;
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                            Log.d("a", "onChildAdded:" + dataSnapshot);
-                            if(dataSnapshot.child("userId").getValue() != null){
-                                if (user.nextUserId == 1){
-                                    user.nextUserId ++;
+                            count++;
+                            if(dataSnapshot.child("userId").getValue() != null && !dataSnapshot.getKey().equals(user.userKey)){
+                                if (user.nextUserId == 1 && count > user.userId){
+                                    user.nextUserId = user.userId + 1;
+                                    Log.d("nextUserID","at 151:: "+user.nextUserId);
                                 }
-//                            TODO::Next_idが1ならNextをuserId++にする
                             }
 
                         }
 
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                            Log.d("a", "onChildChanged:" + dataSnapshot);
                         }
 
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
+
                             //userが部屋からいなくなったときの処理
+                            if(dataSnapshot.child("userId").getValue() != null) {
+                                removedUserId = dataSnapshot.child("userId").getValue(int.class);
+                                myRef.child(user.userKey).child("userId").runTransaction(new Transaction.Handler() {
+                                    @Override
+                                    public Transaction.Result doTransaction(MutableData mutableData) {
+//                                        if(mutableData.getValue() == null){
+//                                            //userIdがnullのときの処理だが、必要ないはず
+//                                        }else{
+                                            if(mutableData.getValue(int.class) > removedUserId ){
+                                                //自分よりも先に部屋に入った人が抜けたらuserId nextUserIdをデクリメント
+                                                user.userId--;
+                                                if (user.nextUserId > 1){
+                                                    user.nextUserId--;
+                                                }else{
 
-                            Log.d("a", "onChildRemoved:" + dataSnapshot);
+                                                }
+                                                Log.d("nextUserID","at 181:: "+user.nextUserId);
+                                                mutableData.setValue(user.userId);
+                                            }else if(removedUserId == mutableData.getValue(int.class)+1 ){
+//                                                自分の次が削除のとき
+//                                                そいつがケツやったらnextUserIDを1にする
+                                                myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
+                                                    @Override
+                                                    public Transaction.Result doTransaction(MutableData mutableData) {
+                                                        if(user.userId == mutableData.getValue(int.class)){
+                                                            user.nextUserId = 1;
+                                                            Log.d("nextUserID","at 190:: "+user.nextUserId);
+                                                        }
+                                                        return null;
+                                                    }
 
-                            if(dataSnapshot.child("userId").getValue() == null){
-                                return;
+                                                    @Override
+                                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                                                        if (b) {
+                                                            String logMessage = dataSnapshot.getValue().toString();
+                                                            Log.d("testRunTran1", "counter: " + logMessage);
+                                                        } else {
+                                                            Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
+                                                        }
+                                                    }
+                                                });
+
+
+                                            }
+//                                        }
+                                        return Transaction.success(mutableData);
+                                    }
+
+                                    @Override
+                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                        if (b) {
+                                        } else {
+                                            Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
+                                        }
+                                    }
+                                });
                             }
 
-                        /*
-                        if(id < user.userId){
-                            user.userId --;
-                            user.nextUserId--;
-                            Map<String, Object> childUpdates = new HashMap<>();
-                            childUpdates.put("/"+ key + "/userId", user.userId );
-                            myRef.updateChildren(childUpdates);
 
-                        }else if(id == user.nextUserId) {
-                            myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
-                                int temp;
-
-                                @Override
-                                public Transaction.Result doTransaction(MutableData mutableData) {
-                                    temp = mutableData.getValue(int.class);
-                                    return null;
-                                }
-
-                                @Override
-                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
-                                    if (b) {
-                                        String logMessage = dataSnapshot.getValue().toString();
-                                        Log.d("testRunTran1", "counter: " + logMessage);
-                                    } else {
-                                        if (temp == user.userId) {
-                                            user.nextUserId = 1;
-                                        }
-                                        Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
-                                    }
-                                }
-                            });
-
-                        }*/
-                            removedUserId = dataSnapshot.child("userId").getValue(int.class);
-                            myRef.child(user.userKey).child("userId").runTransaction(new Transaction.Handler() {
-                                @Override
-                                public Transaction.Result doTransaction(MutableData mutableData) {
-                                    if(mutableData.getValue() == null){
-                                        //userIdがnullのときの処理だが、必要ないはず
-                                    }else{
-                                        if(mutableData.getValue(int.class) > removedUserId ){
-                                            //自分よりも先に部屋に入った人が抜けたらuserId nextUserIdをデクリメント
-                                            user.userId--;
-                                            user.nextUserId--;
-                                            myRef.child(user.userKey).child("userId").setValue(user.userId);
-                                            Log.d("removed user", "id:" + String.valueOf(user.userId) + " next:" + String.valueOf(user.nextUserId));
-                                        }
-                                    }
-                                    return Transaction.success(mutableData);
-                                }
-
-                                @Override
-                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                                    if (b) {
-                                        //自分のuserId，nextUserIdをデクリメントした後に
-                                        //自分が最後尾のユーザーであれば，nextUserIdを1に設定する
-                                        myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
-                                            @Override
-                                            public Transaction.Result doTransaction(MutableData mutableData) {
-                                                if(user.userId ==mutableData.getValue(int.class)){
-                                                    user.nextUserId = 1;
-                                                    Log.d("weryy user", "id:" + String.valueOf(user.userId) + " next:" + String.valueOf(user.nextUserId));
-                                                }
-                                                return null;
-                                            }
-
-                                            @Override
-                                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
-                                                if (b) {
-                                                    String logMessage = dataSnapshot.getValue().toString();
-                                                    Log.d("testRunTran1", "counter: " + logMessage);
-                                                } else {
-                                                    Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
-                                                }
-                                            }
-                                        });
-                                    } else {
-                                        Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
-                                    }
-                                }
-                            });
                         }
 
                         @Override
                         public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-                            Log.d("a", "onChildMoved:" + dataSnapshot.getKey());
                         }
                         @Override
                         public void onCancelled(DatabaseError databaseError) {
@@ -267,17 +237,41 @@ public class MainActivity extends AppCompatActivity {
                     if(user.joined){
                         //すでに部屋に入っているので何もしない
                     }else{
-                        myRef.addChildEventListener(childEventListener);
                         user.joined = true;
                         key = myRef.push().getKey();
                         user.userKey = key;
                         registUserID(myRef,user);
                         user.userName = userName.getText().toString();
-                        myRef.child(key).child("userName").setValue(user.userName);
+                        myRef.addChildEventListener(childEventListener);
                         roomCreateButton.setText("部屋を退出する");
                     }
                 }else if(user.joined == true){
                     //すでに部屋に入ってたら
+                    myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
+                        @Override
+                        public Transaction.Result doTransaction(MutableData mutableData) {
+                            int temp = mutableData.getValue(int.class) -1;
+                            mutableData.setValue(temp);
+
+                            return Transaction.success(mutableData);
+                        }
+
+                        @Override
+                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                            if (b) {
+                                String logMessage = dataSnapshot.getValue().toString();
+                                Log.d("testRunTran1", "counter: " + logMessage);
+                            } else {
+                                Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
+                            }
+                        }
+                    });
+                    myRef.child(user.userKey).removeValue();
+
+                    myRef.removeEventListener(childEventListener);
+                    roomCreateButton.setText("JOIN ROOM");
+                    user.joined = false;
 
                 }
 
@@ -292,28 +286,20 @@ public class MainActivity extends AppCompatActivity {
                 if(mutableData.getValue() == null){
                     mutableData.setValue(1);
                     user.userId = 1;
-                    user.nextUserId = 1;
                 }else{
                     int id = mutableData.getValue(int.class)+1;
                     mutableData.setValue(id);
                     user.userId = id;
-                    user.nextUserId = 1;
                 }
                 databaseReference.child(user.userKey).child("userId").setValue(user.userId);
+                myRef.child(key).child("userName").setValue(user.userName);
                 user.nextUserId = 1;
+                Log.d("nextUserID","at 297:: "+user.nextUserId);
                 return Transaction.success(mutableData);
             }
 
             @Override
             public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
-                if (b) {
-                    String logMessage = dataSnapshot.getValue().toString();
-                    Log.d("regist user", "nextuserid: " + user.nextUserId);
-
-                } else {
-                    Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
-                }
             }
         });
     }
