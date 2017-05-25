@@ -389,10 +389,12 @@ public class MainActivity extends AppCompatActivity {
                 if(mutableData.getValue() == null){
                     mutableData.setValue(1);
                     user.userId = 1;
+                    user.now_color = user.userId;
                 }else{
                     int id = mutableData.getValue(int.class)+1;
                     mutableData.setValue(id);
                     user.userId = id;
+                    user.now_color = user.userId;
                 }
                 databaseReference.child(user.userKey).child("userId").setValue(user.userId);
                 myRef.child(key).child("userName").setValue(user.userName);
