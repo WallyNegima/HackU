@@ -26,6 +26,7 @@ import org.w3c.dom.Comment;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     User user;
@@ -57,76 +58,80 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                user.now_color = Integer.valueOf(editText.getText().toString());
-                myRef.child("prost_now").child(key).child("now_color").setValue(user.now_color);
-                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
-                final ChildEventListener ev =new ChildEventListener() {
-                    int count = 0;
-                    boolean is_first = false;
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        Log.d("prost", "onChildAdded:All:" + dataSnapshot);
-//                        自分が一番乗りのとき
-                        if (count == 0 && dataSnapshot.getKey() == key){
-                            is_first = true;
-                        }
-                        if(dataSnapshot.getKey() == key){
-                            return;
-                        }
-                        Log.d("prost", "onChildAdded:" + dataSnapshot);
-                        if (dataSnapshot.child("now_color").getValue() != null) {
-//                      自身のnext_colorをdataSnap.Child("now_color")に変更
-                            color = dataSnapshot.child("now_color").getValue(int.class);
-                            myRef.child("prost_now").child(key).child("next_color").setValue(color);
-                            if(is_first){
-//                              next_colorは一回だけ変える
-                                myRef.child("prost_now").child(key).removeValue();
-                                Log.d("prost","removeValue_Iam_first");
-                            }else{
-                                count++;
-                            }
-                        }
-                    }
+//                user.now_color = Integer.valueOf(editText.getText().toString());
+                Random rnd = new Random();
+                myRef.child("Roulette").child("light_now").setValue(1);
+                myRef.child("Roulette").child("count").setValue(rnd.nextInt(5)+10);
 
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-//                        Lisnerの解除
-                        if (dataSnapshot.getKey().equals(key)){
-                            Log.d("prost","removeListner");
-                            myRef.child("prost_now").removeEventListener(this);
-                        }else{
-                            Log.d("prost","removeChild:"+dataSnapshot);
-                            if(!is_first){
-//                                自分のNext_colorの持ち主が消えたことを確認する
-                                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
-                                color = user.now_color;
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {}
-                };
-                myRef.child("prost_now").addChildEventListener(ev);
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-//                        next_colorを書き換え
-//                        dbの削除
-                        myRef.child("prost_now").child(key).removeValue();
-                        Log.d("prost","removeValue");
-                        user.now_color = color;
-                        Log.d("prost","onChildtest:"+color);
-                        test_tv.setText(""+color);
-                    }
-                }, 400);
-
+//                myRef.child("prost_now").child(key).child("now_color").setValue(user.now_color);
+//                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
+//                final ChildEventListener ev =new ChildEventListener() {
+//                    int count = 0;
+//                    boolean is_first = false;
+//                    @Override
+//                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                        Log.d("prost", "onChildAdded:All:" + dataSnapshot);
+////                        自分が一番乗りのとき
+//                        if (count == 0 && dataSnapshot.getKey() == key){
+//                            is_first = true;
+//                        }
+//                        if(dataSnapshot.getKey() == key){
+//                            return;
+//                        }
+//                        Log.d("prost", "onChildAdded:" + dataSnapshot);
+//                        if (dataSnapshot.child("now_color").getValue() != null) {
+////                      自身のnext_colorをdataSnap.Child("now_color")に変更
+//                            color = dataSnapshot.child("now_color").getValue(int.class);
+//                            myRef.child("prost_now").child(key).child("next_color").setValue(color);
+//                            if(is_first){
+////                              next_colorは一回だけ変える
+//                                myRef.child("prost_now").child(key).removeValue();
+//                                Log.d("prost","removeValue_Iam_first");
+//                            }else{
+//                                count++;
+//                            }
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+//
+//                    @Override
+//                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+////                        Lisnerの解除
+//                        if (dataSnapshot.getKey().equals(key)){
+//                            Log.d("prost","removeListner");
+//                            myRef.child("prost_now").removeEventListener(this);
+//                        }else{
+//                            Log.d("prost","removeChild:"+dataSnapshot);
+//                            if(!is_first){
+////                                自分のNext_colorの持ち主が消えたことを確認する
+//                                myRef.child("prost_now").child(key).child("next_color").setValue(user.now_color);
+//                                color = user.now_color;
+//                            }
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+//
+//                    @Override
+//                    public void onCancelled(DatabaseError databaseError) {}
+//                };
+//                myRef.child("prost_now").addChildEventListener(ev);
+//                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+////                        next_colorを書き換え
+////                        dbの削除
+//                        myRef.child("prost_now").child(key).removeValue();
+//                        Log.d("prost","removeValue");
+//                        user.now_color = color;
+//                        Log.d("prost","onChildtest:"+color);
+//                        test_tv.setText(""+color);
+//                    }
+//                }, 400);
+//
             }
         });
 
@@ -145,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
                             count++;
+//                            新規ユーザ追加時
                             if(dataSnapshot.child("userId").getValue() != null && !dataSnapshot.getKey().equals(user.userKey)){
                                 if (user.nextUserId == 1 && count > user.userId){
                                     user.nextUserId = user.userId + 1;
@@ -152,11 +158,66 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
 
+//                            ルーレットON
+                            if(dataSnapshot.getKey().equals("Roulette")){
+                                Log.d("Roulette","Added");
+                                if (dataSnapshot.child("light_now").getValue(int.class) == user.userId){
+//                                    TODO::ピカピカ〜
+                                    test_tv.setText("hfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhf");
+                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            myRef.child("Roulette").child("light_now").runTransaction(new Transaction.Handler() {
+                                                @Override
+                                                public Transaction.Result doTransaction(MutableData mutableData) {
+                                                    mutableData.setValue(user.nextUserId);
+                                                    return Transaction.success(mutableData);
+                                                }
+
+                                                @Override
+                                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+//                                         TODO   消す処理
+                                                    test_tv.setText("");
+                                                }
+                                            });
+                                        }
+                                    }, 100);
+                                }
+                            }
                         }
 
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+                            if(dataSnapshot.getKey().equals("Roulette")){
+                                if (dataSnapshot.child("light_now").getValue(int.class) == user.userId){
+                                    final int count = dataSnapshot.child("count").getValue(int.class);
+//                                    TODO::ピカピカ〜
+                                    test_tv.setText("hfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhf");
+//                                    countが0やったら終了
+                                    if (count > 0){
+                                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+//                                         TODO   消す処理
+                                                test_tv.setText("");
+                                                myRef.child("Roulette").child("count").setValue(count-1);
+                                                myRef.child("Roulette").child("light_now").setValue(user.nextUserId);
+                                            }
+                                        }, 500);
+                                    }else{
+                                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+//                                        Roulette削除
+                                                myRef.child("Roulette").removeValue();
+                                            }
+                                        },2000);
+                                    }
+                                }
+                            }
+
                         }
+
 
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
