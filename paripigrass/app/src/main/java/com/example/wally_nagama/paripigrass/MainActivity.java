@@ -159,22 +159,26 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
-                        /*
+                        //userが部屋からいなくなったときの処理
+
                         Log.d("a", "onChildRemoved:" + dataSnapshot);
 
                         if(dataSnapshot.child("userId").getValue() == null){
                             return;
                         }
-                        int id = dataSnapshot.child("userId").getValue(int.class);
+
+                        /*
                         if(id < user.userId){
                             user.userId --;
+                            user.nextUserId--;
                             Map<String, Object> childUpdates = new HashMap<>();
                             childUpdates.put("/"+ key + "/userId", user.userId );
                             myRef.updateChildren(childUpdates);
 
-                        }else if(id == user.nextUserId){
+                        }else if(id == user.nextUserId) {
                             myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
                                 int temp;
+
                                 @Override
                                 public Transaction.Result doTransaction(MutableData mutableData) {
                                     temp = mutableData.getValue(int.class);
@@ -188,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                                         String logMessage = dataSnapshot.getValue().toString();
                                         Log.d("testRunTran1", "counter: " + logMessage);
                                     } else {
-                                        if (temp == user.userId){
+                                        if (temp == user.userId) {
                                             user.nextUserId = 1;
                                         }
                                         Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
@@ -196,43 +200,40 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
 
-                        }
-                        */
-
-                        //userが部屋からいなくなったときの処理
-                        for(DataSnapshot datasnapshot : dataSnapshot.getChildren()){
-                            if(datasnapshot.getKey().equals("userId")){
-                                removedUserId = datasnapshot.getValue(int.class);
-                                myRef.child(user.userKey).child("userId").runTransaction(new Transaction.Handler() {
-                                    @Override
-                                    public Transaction.Result doTransaction(MutableData mutableData) {
-                                        if(mutableData.getValue() == null){
-                                            //userIdがnullのときの処理だが、必要ないはず
-                                        }else{
-                                            if(mutableData.getValue(int.class) > removedUserId ){
-                                                //自分よりも先に部屋に入った人が抜けたら
-                                                user.userId--;
-                                                user.nextUserId--;
-                                                myRef.child(user.userKey).child("userId").setValue(user.userId);
-                                                Log.d("removed user", "id:" + String.valueOf(user.userId) + " next:" + String.valueOf(user.nextUserId));
-                                            }
-                                        }
-                                        return Transaction.success(mutableData);
+                        }*/
+                        removedUserId = dataSnapshot.child("userId").getValue(int.class);
+                        myRef.child(user.userKey).child("userId").runTransaction(new Transaction.Handler() {
+                            @Override
+                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                if(mutableData.getValue() == null){
+                                    //userIdがnullのときの処理だが、必要ないはず
+                                }else{
+                                    if(mutableData.getValue(int.class) > removedUserId ){
+                                        //自分よりも先に部屋に入った人が抜けたらuserId nextUserIdをデクリメント
+                                        user.userId--;
+                                        user.nextUserId--;
+                                        myRef.child(user.userKey).child("userId").setValue(user.userId);
+                                        Log.d("removed user", "id:" + String.valueOf(user.userId) + " next:" + String.valueOf(user.nextUserId));
                                     }
-
-                                    @Override
-                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
-                                        if (b) {
-                                            String logMessage = dataSnapshot.getValue().toString();
-                                            Log.d("testRunTran", "counter: " + logMessage);
-                                        } else {
-                                            Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
-                                        }
-                                    }
-                                });
+                                }
+                                return Transaction.success(mutableData);
                             }
-                        }
+
+                            @Override
+                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                                if (b) {
+                                    if(myRef.child("numberOfUser").equals(user.userId+1)){
+                                        //自分が最後尾のuserになったらnextUserIdは先頭の人を指す
+                                        user.nextUserId = 1;
+                                    }
+                                    String logMessage = dataSnapshot.getValue().toString();
+                                    Log.d("testRunTran", "counter: " + logMessage);
+                                } else {
+                                    Log.d("testRunTran", databaseError.getMessage(), databaseError.toException());
+                                }
+                            }
+                        });
                     }
 
                     @Override
