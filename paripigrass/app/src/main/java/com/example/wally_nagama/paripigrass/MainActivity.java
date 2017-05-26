@@ -86,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    ;
-
 
     /*---       startActivityForResultで起動したアクティビティが終了した時に呼び出される関数   ---*/
     @Override
