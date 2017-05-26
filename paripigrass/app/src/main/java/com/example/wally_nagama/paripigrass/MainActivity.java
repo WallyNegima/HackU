@@ -219,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             //接続中のみ書き込みを行う//
             if(connectFlg) {
                 try {
+                    //---------------書き込み
                     mmOutputStream.write("2".getBytes());
                     mStatusTextView.setText("Write");
                 } catch (IOException e) {
