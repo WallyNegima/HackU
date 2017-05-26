@@ -62,18 +62,15 @@ public class MainActivity extends AppCompatActivity {
                     // 音声認識プロンプトを立ち上げるインテント作成
                     Intent intent = new Intent(
                             RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
                     // 言語モデル： free-form speech recognition
                     // web search terms用のLANGUAGE_MODEL_WEB_SEARCHにすると検索画面
                     intent.putExtra(
                             RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                             RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-
                     // プロンプトに表示する文字を設定
                     intent.putExtra(
                             RecognizerIntent.EXTRA_PROMPT,
                             "話せや");
-
                     // インテント発行
                     startActivityForResult(intent, REQUEST_CODE);
                 } catch (ActivityNotFoundException e) {
@@ -92,18 +89,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // 音声認識結果の時
         if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-
             // 結果文字列リストを取得
             ArrayList<String> results = data.getStringArrayListExtra(
                     RecognizerIntent.EXTRA_RESULTS);
-
             if (results.size() > 0) {
                 // 認識結果候補で一番有力なものを表示
                 txvRec.setText(results.get(0));
                 // checkCharacterに値を渡す
                 //checkResult.resultRec = results.get(0);
                 result_voce = results.get(0);
-
                 /*
                 /*---    この下に結果処理を一応描いてみる   ---*/
                 switch (result_voce) {
@@ -114,25 +108,20 @@ public class MainActivity extends AppCompatActivity {
                     case "乾杯":
                         Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
                         break;
-
                 /*---   ルーレット   */
                     case "ルーレットモード":
                         Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
                         break;
-
                     case "ルーレット":
                         Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
                         break;
-
-
-                /*---   司会者   ---*/
+                /*--   司会者   ---*/
                     case "司会者になりました":
                         Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
                         break;
                     case "司会者":
                         Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
                         break;
-
                 /*---   一気飲み   ---*/
                     case "一気飲み":
                         Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
@@ -140,19 +129,9 @@ public class MainActivity extends AppCompatActivity {
                     case "一気飲みします":
                         Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
                         break;
-
-
                 }
-
             }
-
-            //super.onActivityResult(requestCode, resultCode, data);    ---1
-
-            // 認識後
-            //checkResult.returnCharacter();
-
         }
-
-
     }
+
 }

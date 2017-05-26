@@ -18,7 +18,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".Roulette" />
     </application>
 
 </manifest>
