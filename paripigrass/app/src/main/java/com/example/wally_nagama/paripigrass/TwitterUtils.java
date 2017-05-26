@@ -2,6 +2,7 @@ package com.example.wally_nagama.paripigrass;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
@@ -16,14 +17,10 @@ public class TwitterUtils {
     private static final String TOKEN_SECRET = "token_secret";
     private static final String PREF_NAME = "twitter_access_token";
 
-    {
-        //コンストラクタ
-    }
 
     /**
      * Twitterインスタンスを取得します。アクセストークンが保存されていれば自動的にセットします。
      *
-     * @param context
      * @return
      */
     public static Twitter getTwitterInstance(Context context) {
@@ -34,9 +31,17 @@ public class TwitterUtils {
         Twitter twitter = factory.getInstance();
         twitter.setOAuthConsumer(consumerKey, consumerSecret);
 
+
         if (hasAccessToken(context)) {
+            Log.d("get" , "aa");
             twitter.setOAuthAccessToken(loadAccessToken(context));
         }
+        SharedPreferences preferences = context.getSharedPreferences(PREF_NAME,
+                Context.MODE_PRIVATE);
+        String token = preferences.getString(TOKEN, null);
+        String tokenSecret = preferences.getString(TOKEN_SECRET, null);
+        Log.d("tw", token +":"+tokenSecret);
+        Log.d("tw", "access:" + preferences.getString(PREF_NAME, null));
         return twitter;
     }
 
@@ -81,6 +86,4 @@ public class TwitterUtils {
     public static boolean hasAccessToken(Context context) {
         return loadAccessToken(context) != null;
     }
-
-
 }

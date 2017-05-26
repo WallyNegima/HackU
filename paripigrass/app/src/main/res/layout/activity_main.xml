@@ -147,8 +147,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="へ〜"/>
-
-
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/twitter"
+                android:text="twitter"/>
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/tweet"
+                android:text="tweet!"/>
         </LinearLayout>
 
 

@@ -4,4 +4,7 @@
     <string name="amin_ikkinomi">一気飲み</string>
     <string name="amin_speech">司会者</string>
     <string name="title_new_device"></string>
+    <string name="twitter_consumer_key">nkPZcZKZq3yWMdsapQkWOzNME</string>
+    <string name="twitter_consumer_secret">cLVyta6uvMj6IY1gv1y1rLeowRjRzLK7aDBCepCFYDShaumRp8</string>
+    <string name="twitter_callback_url">ustrgm://twitter</string>
 </resources>

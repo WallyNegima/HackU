@@ -6,6 +6,9 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
+import java.util.Date;
+
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 /**
@@ -14,19 +17,22 @@ import twitter4j.TwitterException;
 
 public class Tweet {
     private Context context;
-    private SharedPreferences sharedPreferences;
+    private Twitter mTwitter;
+    Date dTime = new Date();
 
-    public Tweet(Context c){
+    public Tweet(Context c, Twitter t){
         //コンストラクタ
         this.context = c;
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.mTwitter = t;
     }
 
     public void tweet() {
+
         AsyncTask<String, Void, Boolean> task = new AsyncTask<String, Void, Boolean>() {
             @Override
             protected Boolean doInBackground(String... params) {
                 try {
+                    mTwitter.updateStatus("俺はパリピになる！！！！！！！！！！@ " + dTime.toString());
                     return true;
                 } catch (TwitterException e) {
                     e.printStackTrace();
