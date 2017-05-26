@@ -264,21 +264,43 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 myRef.child("now_color").runTransaction(new Transaction.Handler() {
-                    int temp = user.now_color;
                     @Override
                     public Transaction.Result doTransaction(MutableData mutableData) {
-                        if(mutableData.getValue() == null || mutableData.getValue(int.class) == 0){
+                        if(mutableData.getValue() == null){
+                            mutableData.setValue(user.now_color);
+                            HandlerThread handlerThread = new HandlerThread("foo");
+                            handlerThread.start();
+                            new Handler(handlerThread.getLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // ここに３秒後に実行したい処理
+                                    myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                                        @Override
+                                        public Transaction.Result doTransaction(MutableData mutableData) {
+                                            user.now_color = mutableData.getValue(int.class);
+                                            myRef.child("now_color").removeValue();
+                                            test_tv.setText(user.now_color + "!");
+                                            Log.d("kanpai", "add null!");
+                                            return Transaction.success(mutableData);
+                                        }
+                                        @Override
+                                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                        }
+                                    });
+                                }
+                            }, 200);
 
                         }else{
+                            int temp = user.now_color;
                             user.now_color = mutableData.getValue(int.class);
+                            myRef.child("now_color").setValue(temp);
+                            test_tv.setText(user.now_color + "!");
                             Log.d("kanpai", "add now_color!");
-                            mutableData.setValue(0);
                         }
                         return Transaction.success(mutableData);
                     }
                     @Override
                     public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
                     }
                 });
             }
