@@ -4,7 +4,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -14,14 +16,25 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Comment;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,6 +42,11 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
     BluetoothAdapter btAdapter;
     BlueToothReceiver btReceiver;
+    List<BluetoothDevice> devices1;
+    ArrayList<String> itemArray = new ArrayList<String>();
+    ArrayList<String> mArrayAdapter = new ArrayList<String>();
+    final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
+
     /* tag */
     private static final String TAG = "BluetoothSample";
 
@@ -74,16 +92,29 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     /** Connect確認用フラグ */
     private boolean connectFlg = false;
     /** BluetoothのOutputStream. */
-    //
     OutputStream mmOutputStream = null;
-
-
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //テストボタン
+        button = (Button)findViewById(R.id.button);
+        editText = (EditText)findViewById(R.id.edittext);
+
+        roomCreateButton = (Button)findViewById(R.id.userCreate); //部屋を作る･退出する
+        btListButton = (Button)findViewById(R.id.btbutton); //ペアリングしているbt機器をダイアログで表示･接続する機器を選択
+        lightOnLed = (Button)findViewById(R.id.amin_light_on_led); //LEDを光らせる
+        lightOffLed = (Button)findViewById(R.id.amin_light_off_led); //LEDoffにする
+        userName = (EditText)findViewById(R.id.userName); //部屋に入る時のユーザー名
+        roomNumber = (EditText)findViewById(R.id.roomNumber); //入る部屋の番号
+        btText = (TextView)findViewById(R.id.bt_text); //ペアリングしている機器一覧
+        deviceText = (TextView)findViewById(R.id.device); //わからない
+        userNum = 0;
+        devices1 = new ArrayList<>();
+
+        user = new User();
 
         //--------------BlueToothLED
         mInputTextView = (TextView)findViewById(R.id.inputValue);
@@ -101,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 mDevice = device;
             }
         }
+
     }
 
     @Override
@@ -112,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         }
         btReceiver.unregister();
     }
+
 
     @Override
     protected void onPause() {
