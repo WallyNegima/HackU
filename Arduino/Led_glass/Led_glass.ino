@@ -9,12 +9,15 @@
 #define CMD 7
 #define INTERRUPT_PIN 2
 #define LED_PIN 13
+#define CANPAI_THRESHOLD 45000000
+#define CANPAI_WAITTIME 500
+
+int counter = 1, counterold = 1, canpaicounter = 1, canpaicounterold = 1;
+int loopcounter, canpailoopcounter;
+unsigned long time0, canpaitime0;
 
 MPU6050 mpu;
 bool blinkState = false;
-int counter=1, counterold=1;
-int loopcounter;
-unsigned long time0,time1;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -34,21 +37,13 @@ float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
 
-// ================================================================
-// ===               INTERRUPT DETECTION ROUTINE                ===
-// ================================================================
-
-volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
-void dmpDataReady() {
-  mpuInterrupt = true;
-}
-
-
 void check_commands(String S_input);//プロトタイプ宣言
 String read_command_from_serial();
 void write_data_to_rom(String String_data);
 String read_data_from_rom(void);
 void read_data_form_mpu6050(void);
+
+volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
 
 void setup() {
   Serial.begin(9600);
@@ -115,8 +110,60 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
 }
 
+VectorInt16 myRealaccel;
+
 void loop() {
-  read_data_form_mpu6050();
+
+  if (mpuInterrupt) {
+    myRealaccel = read_realaccel_form_mpu6050();
+  }
+
+  /////////////////////////////////////////CANPAI_DETECTION/////////////////////////////////
+
+  if (CANPAI_THRESHOLD <= ((long int)myRealaccel.x * (long int)myRealaccel.x + (long int)myRealaccel.y * (long int)myRealaccel.y)) {
+    /*Serial.print("kanpai!" + (String)counter);
+      Serial.println("loopc" + (String)loopcounter);
+      Serial.println(millis());
+      Serial.println(time0);*/
+    ++counter;
+
+  } else if (counterold != 1) {
+    counter = 1;
+    ++loopcounter;
+    if (millis() - time0 > CANPAI_WAITTIME) {
+      Serial.println("kanpai!!!");
+    }
+    time0 = millis();
+  }
+  counterold = counter;
+
+  ///////////////////////////////////////////////////////////////////////////////////////////
+
+
+  //////////////////////////////////////////IKKINOMI_DETECTION/////////////////////////////////
+
+  /*if (4000 <= (myRealaccel.z)) {
+    Serial.print("ikkistart!" + (String)canpaicounter);
+    Serial.println("ikkiloopc" + (String)canpailoopcounter);
+    Serial.println(millis());
+    Serial.println(canpaitime0);
+    ++canpaicounter;
+
+  } else if (canpaicounterold != 1) {
+    canpaicounter = 1;
+    ++canpailoopcounter;
+    if (millis() - canpaitime0 > 500) {
+      Serial.println("ikkistart!!!");
+    }
+    canpaitime0 = millis();
+  }
+  canpaicounterold = canpaicounter;*/
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+}
+
+void dmpDataReady() {//加速度を受信したとき、割り込み処理を行う
+  mpuInterrupt = true;
 }
 
 void serialEvent() { //シリアル通信を受信したとき、割り込み処理を行う
@@ -140,23 +187,14 @@ String read_command_from_serial() {
   return &S_input[0];
 }
 
-void read_data_form_mpu6050(void) {
-  if (!dmpReady) {
-    Serial.println("dmp_not_Ready");
-  }
-
-  // wait for MPU interrupt or extra packet(s) available
-  while (!mpuInterrupt && fifoCount < packetSize) {
-    //Serial.println("notgetaccel");
-  }
-
-  // reset interrupt flag and get INT_STATUS byte
+VectorInt16 read_realaccel_form_mpu6050(void) {
   mpuInterrupt = false;
+
   mpuIntStatus = mpu.getIntStatus();
 
   fifoCount = mpu.getFIFOCount();
 
-  // check for overflow (this should never happen unless our code is too inefficient)
+  // check for overflow
   if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
     // reset so we can continue cleanly
     mpu.resetFIFO();
@@ -164,54 +202,24 @@ void read_data_form_mpu6050(void) {
 
     // otherwise, check for DMP data ready interrupt (this should happen frequently)
   } else if (mpuIntStatus & 0x02) {
+
+
     // wait for correct available data length, should be a VERY short wait
     while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
 
     // read a packet from FIFO
     mpu.getFIFOBytes(fifoBuffer, packetSize);
 
-    // track FIFO count here in case there is > 1 packet available
-    // (this lets us immediately read more without waiting for an interrupt)
-    fifoCount -= packetSize;
-
-
-
     // display real acceleration, adjusted to remove gravity
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetAccel(&aa, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-    /*Serial.print("areal\t");
-      Serial.print(aaReal.x);
-      Serial.print("\t");
-      Serial.print(aaReal.y);
-      Serial.print("\t");
-      Serial.println(aaReal.z);*/
-    //Serial.println((long int)aaReal.x*(long int)aaReal.x + (long int)aaReal.y*(long int)aaReal.y);
-    if (45000000 <= ((long int)aaReal.x * (long int)aaReal.x + (long int)aaReal.y * (long int)aaReal.y)) {
-      //Serial.print("kanpai!" + (String)counter);
-      //Serial.println("loopc" + (String)loopcounter);
-      //Serial.println(millis());
-      //Serial.println(time0);
-      
-      ++counter;
-    }
-    if (counterold + 1 == counter) {
-    } else {
-      counter = 1;
-    }
-    if(counterold!=1&&counter==1){
-      if(millis()-time0>500){
-        Serial.println("kanpai");
-      }
-      ++loopcounter;
-      time0 = millis();
-    }
-    counterold = counter;
 
-    // blink LED to indicate activity
     blinkState = !blinkState;
     digitalWrite(LED_PIN, blinkState);
+
+    return aaReal;
   }
 }
 
