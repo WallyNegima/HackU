@@ -3,4 +3,5 @@
     <string name="amin_rouletteMode">ルーレットモード</string>
     <string name="amin_ikkinomi">一気飲み</string>
     <string name="amin_speech">司会者</string>
+    <string name="title_new_device"></string>
 </resources>

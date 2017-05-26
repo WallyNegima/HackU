@@ -5,12 +5,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.wally_nagama.paripigrass.MainActivity">
+
+    <ScrollView android:id="@+id/ScrollView01"
+        android:layout_width="fill_parent" android:layout_height="fill_parent">
+
+
+
+
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="0dp">
+
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Hello World!"
             android:id="@+id/test_tv"
@@ -18,6 +28,13 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/bt_text"
+            tools:layout_editor_absoluteY="8dp"
+            tools:layout_editor_absoluteX="0dp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -65,6 +82,77 @@
 
     </LinearLayout>
 
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:layout_editor_absoluteY="0dp"
+            tools:layout_editor_absoluteX="0dp">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/bt_text"
+                tools:layout_editor_absoluteY="8dp"
+                tools:layout_editor_absoluteX="0dp" />
+
+            <Button
+                android:id="@+id/amin_light_on_led"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="光れ...LED...ッ!!!!"/>
+
+
+            <Button android:id="@+id/connectButton"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Connect" />
+
+            <TextView
+                android:id="@+id/statusValue"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:id="@+id/inputValue"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                />
+
+            <Button android:id="@+id/writeButton"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Write" />
+
+            <TextView
+                android:id="@+id/txv_recog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+            <Button
+                android:id="@+id/amin_recog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="音声認識"/>
+
+            <TextView
+                android:id="@+id/amin_txvAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+            <Button
+                android:id="@+id/amin_heybutton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="へ〜"/>
+
+
+        </LinearLayout>
+
+
+    </ScrollView>
 
 </android.support.constraint.ConstraintLayout>
