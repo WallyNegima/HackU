@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     @Override
     public void onClick(View v) {
         if(v.equals(connectButton)) {
-            //接続されていない場合のみ
+            //接続されていない場合のみ//
             if(!connectFlg) {
                 mStatusTextView.setText("try connect");
 
