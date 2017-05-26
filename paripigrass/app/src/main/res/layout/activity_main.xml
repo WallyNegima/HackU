@@ -55,6 +55,30 @@
             android:layout_height="wrap_content"
             android:text="Write" />
 
+        <TextView
+            android:id="@+id/txv_recog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+        <Button
+        android:id="@+id/amin_recog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="音声認識"/>
+
+        <TextView
+            android:id="@+id/amin_txvAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+        <Button
+            android:id="@+id/amin_heybutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="へ〜"/>
+
 
     </LinearLayout>
 

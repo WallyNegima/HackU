@@ -3,12 +3,15 @@ package com.example.wally_nagama.paripigrass;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
+import android.speech.RecognizerIntent;
+import android.support.annotation.CheckResult;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -94,6 +97,13 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     /** BluetoothのOutputStream. */
     OutputStream mmOutputStream = null;
 
+    /* 音声認識で使うよーんwwwwww  */
+    private TextView txvAction;
+    private TextView txvRec;
+    private static final int REQUEST_CODE = 0;
+    public Context context;
+    private String result_voce;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +126,46 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 mDevice = device;
             }
         }
+
+        //音声認識
+        txvAction = (TextView) findViewById(R.id.amin_txvAction);
+        txvRec = (TextView) findViewById(R.id.txv_recog);
+
+        /*---    へーへーボタンリスナー ---*/
+        findViewById(R.id.amin_heybutton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                txvAction.setText("へ〜〜〜〜！！！！");
+                //Toast.makeText(context, "乾杯", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        /*---     音声認識リスナー   ----*/
+        findViewById(R.id.amin_recog).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    // 音声認識プロンプトを立ち上げるインテント作成
+                    Intent intent = new Intent(
+                            RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    // 言語モデル： free-form speech recognition
+                    // web search terms用のLANGUAGE_MODEL_WEB_SEARCHにすると検索画面
+                    intent.putExtra(
+                            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    // プロンプトに表示する文字を設定
+                    intent.putExtra(
+                            RecognizerIntent.EXTRA_PROMPT,
+                            "話せや");
+                    // インテント発行
+                    startActivityForResult(intent, REQUEST_CODE);
+                } catch (ActivityNotFoundException e) {
+                    // エラー表示
+                    Toast.makeText(MainActivity.this,
+                            "ActivityNotFoundException", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 
     }
 
@@ -219,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             //接続中のみ書き込みを行う//
             if(connectFlg) {
                 try {
-                    mmOutputStream.write("2".getBytes());
+                    mmOutputStream.write("L".getBytes());
                     mStatusTextView.setText("Write");
                 } catch (IOException e) {
                     Message valueMsg = new Message();
@@ -245,4 +295,77 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             }
         }
     };
+
+
+    /*---       startActivityForResultで起動したアクティビティが終了した時に呼び出される関数   ---*/
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // 音声認識結果の時
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            // 結果文字列リストを取得
+            ArrayList<String> results = data.getStringArrayListExtra(
+                    RecognizerIntent.EXTRA_RESULTS);
+            if (results.size() > 0) {
+                // 認識結果候補で一番有力なものを表示
+                txvRec.setText(results.get(0));
+                // checkCharacterに値を渡す
+                //checkResult.resultRec = results.get(0);
+                result_voce = results.get(0);
+                /*
+                /*---    この下に結果処理を一応描いてみる   ---*/
+                switch (result_voce) {
+                /*---   乾杯   ---*/
+                    case "乾杯します":
+                        Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
+                        break;
+                    case "乾杯":
+                        Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
+
+                        try{
+                            // "L"は光らせる
+                            mmOutputStream.write("L".getBytes());
+                            mStatusTextView.setText("L");
+                        } catch (IOException e) {
+                            Message valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "Error3:" + e;
+                            mHandler.sendMessage(valueMsg);
+                        }
+                        break;
+                /*---   ルーレット   */
+                    case "ルーレットモード":
+                        Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+                        break;
+                    case "ルーレット":
+                        Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+                        break;
+                /*--   司会者   ---*/
+                    case "司会者になりました":
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
+                        break;
+                    case "司会者":
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
+                        break;
+                /*---   一気飲み   ---*/
+                    case "一気飲み":
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        break;
+                    case "一気飲みします":
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        break;
+                    case "LEDオン":
+                        try{
+                            mmOutputStream.write("L".getBytes());
+                            mStatusTextView.setText("L");
+                        } catch (IOException e) {
+                            Message valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "Error3:" + e;
+                            mHandler.sendMessage(valueMsg);
+                        }
+                        break;
+                }
+            }
+        }
+    }
 }
