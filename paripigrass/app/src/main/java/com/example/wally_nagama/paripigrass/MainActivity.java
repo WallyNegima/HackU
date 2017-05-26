@@ -127,38 +127,38 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        button = (Button)findViewById(R.id.button);
-        roomCreateButton = (Button)findViewById(R.id.userCreate);
-        kanpaiButton = (Button)findViewById(R.id.kanpai);
-        editText = (EditText)findViewById(R.id.edittext);
-        userName = (EditText)findViewById(R.id.userName);
-        roomNumber = (EditText)findViewById(R.id.roomNumber);
-        test_tv = (TextView)findViewById(R.id.test_tv);
+        button = (Button) findViewById(R.id.button);
+        roomCreateButton = (Button) findViewById(R.id.userCreate);
+        kanpaiButton = (Button) findViewById(R.id.kanpai);
+        editText = (EditText) findViewById(R.id.edittext);
+        userName = (EditText) findViewById(R.id.userName);
+        roomNumber = (EditText) findViewById(R.id.roomNumber);
+        test_tv = (TextView) findViewById(R.id.test_tv);
 
         user = new User();
 
-        button.setOnClickListener(new View.OnClickListener(){
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
 //                user.now_color = Integer.valueOf(editText.getText().toString());
                 Random rnd = new Random();
                 myRef.child("Roulette").child("light_now").setValue(1);
-                myRef.child("Roulette").child("count").setValue(rnd.nextInt(5)+10);
+                myRef.child("Roulette").child("count").setValue(rnd.nextInt(5) + 10);
             }
         });
 
         //--------------BlueToothLED
-        mInputTextView = (TextView)findViewById(R.id.inputValue);
-        mStatusTextView = (TextView)findViewById(R.id.statusValue);
-        connectButton = (Button)findViewById(R.id.connectButton);
-        writeButton = (Button)findViewById(R.id.writeButton);
+        mInputTextView = (TextView) findViewById(R.id.inputValue);
+        mStatusTextView = (TextView) findViewById(R.id.statusValue);
+        connectButton = (Button) findViewById(R.id.connectButton);
+        writeButton = (Button) findViewById(R.id.writeButton);
         connectButton.setOnClickListener(this);
         writeButton.setOnClickListener(this);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mStatusTextView.setText("SearchDevice");
         Set<BluetoothDevice> devices = mAdapter.getBondedDevices();
-        for(BluetoothDevice device: devices) {
-            if(device.getName().equals(DEVICE_NAME)) {
+        for (BluetoothDevice device : devices) {
+            if (device.getName().equals(DEVICE_NAME)) {
                 mStatusTextView.setText("find:" + device.getName());
                 mDevice = device;
             }
@@ -205,12 +205,11 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         });
 
 
-
         //roomを作成する
-        roomCreateButton.setOnClickListener(new View.OnClickListener(){
+        roomCreateButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
-                if(user.joined == false){
+            public void onClick(View v) {
+                if (user.joined == false) {
                     String roomId = roomNumber.getText().toString();
                     Room room = new Room(roomId);
                     myRef = database.getReference("room" + roomId);
@@ -218,21 +217,22 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     //ユーザーのリストなどを見張る
                     childEventListener = new ChildEventListener() {
                         int count = 0;
+
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
                             count++;
 //                            新規ユーザ追加時
-                            if(dataSnapshot.child("userId").getValue() != null && !dataSnapshot.getKey().equals(user.userKey)){
-                                if (user.nextUserId == 1 && count > user.userId){
+                            if (dataSnapshot.child("userId").getValue() != null && !dataSnapshot.getKey().equals(user.userKey)) {
+                                if (user.nextUserId == 1 && count > user.userId) {
                                     user.nextUserId = user.userId + 1;
-                                    Log.d("nextUserID","at 151:: "+user.nextUserId);
+                                    Log.d("nextUserID", "at 151:: " + user.nextUserId);
                                 }
                             }
 
 //                            ルーレットON
-                            if(dataSnapshot.getKey().equals("Roulette")){
-                                Log.d("Roulette","Added");
-                                if (dataSnapshot.child("light_now").getValue(int.class) == user.userId){
+                            if (dataSnapshot.getKey().equals("Roulette")) {
+                                Log.d("Roulette", "Added");
+                                if (dataSnapshot.child("light_now").getValue(int.class) == user.userId) {
 //                                    TODO::ピカピカ〜
                                     test_tv.setText("hfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhf");
                                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -244,6 +244,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                                     mutableData.setValue(user.nextUserId);
                                                     return Transaction.success(mutableData);
                                                 }
+
                                                 @Override
                                                 public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
 //                                         TODO   消す処理
@@ -258,13 +259,13 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                            if(dataSnapshot.getKey().equals("Roulette")){
-                                if (dataSnapshot.child("light_now").getValue(int.class) == user.userId){
+                            if (dataSnapshot.getKey().equals("Roulette")) {
+                                if (dataSnapshot.child("light_now").getValue(int.class) == user.userId) {
                                     final int count = dataSnapshot.child("count").getValue(int.class);
 //                                    TODO::ピカピカ〜
                                     test_tv.setText("hfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhf");
 //                                    countが0やったら終了
-                                    if (count > 0){
+                                    if (count > 0) {
                                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                             @Override
                                             public void run() {
@@ -278,20 +279,20 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                                     @Override
                                                     public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
 //                                                      TODO   消す処理
-                                                        myRef.child("Roulette").child("count").setValue(count-1);
+                                                        myRef.child("Roulette").child("count").setValue(count - 1);
                                                         test_tv.setText("");
                                                     }
                                                 });
                                             }
                                         }, 100);
-                                    }else{
+                                    } else {
                                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                             @Override
                                             public void run() {
 //                                        Roulette削除
                                                 myRef.child("Roulette").removeValue();
                                             }
-                                        },2000);
+                                        }, 2000);
                                     }
                                 }
                             }
@@ -301,46 +302,46 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
                             //userが部屋からいなくなったときの処理
-                            if(dataSnapshot.child("userId").getValue() != null) {
+                            if (dataSnapshot.child("userId").getValue() != null) {
                                 removedUserId = dataSnapshot.child("userId").getValue(int.class);
                                 myRef.child(user.userKey).child("userId").runTransaction(new Transaction.Handler() {
                                     @Override
                                     public Transaction.Result doTransaction(MutableData mutableData) {
-                                            if(mutableData.getValue(int.class) > removedUserId ){
-                                                //自分よりも先に部屋に入った人が抜けたらuserId nextUserIdをデクリメント
-                                                user.userId--;
-                                                if (user.nextUserId > 1){
-                                                    user.nextUserId--;
-                                                }else{
+                                        if (mutableData.getValue(int.class) > removedUserId) {
+                                            //自分よりも先に部屋に入った人が抜けたらuserId nextUserIdをデクリメント
+                                            user.userId--;
+                                            if (user.nextUserId > 1) {
+                                                user.nextUserId--;
+                                            } else {
 
-                                                }
-                                                Log.d("nextUserID","at 181:: "+user.nextUserId);
-                                                mutableData.setValue(user.userId);
-                                            }else if(removedUserId == mutableData.getValue(int.class)+1 ){
+                                            }
+                                            Log.d("nextUserID", "at 181:: " + user.nextUserId);
+                                            mutableData.setValue(user.userId);
+                                        } else if (removedUserId == mutableData.getValue(int.class) + 1) {
 //                                                自分の次が削除のとき
 //                                                そいつがケツやったらnextUserIDを1にする
-                                                myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
-                                                    @Override
-                                                    public Transaction.Result doTransaction(MutableData mutableData) {
-                                                        if(user.userId == mutableData.getValue(int.class)){
-                                                            user.nextUserId = 1;
-                                                            Log.d("nextUserID","at 190:: "+user.nextUserId);
-                                                        }
-                                                        return null;
+                                            myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
+                                                @Override
+                                                public Transaction.Result doTransaction(MutableData mutableData) {
+                                                    if (user.userId == mutableData.getValue(int.class)) {
+                                                        user.nextUserId = 1;
+                                                        Log.d("nextUserID", "at 190:: " + user.nextUserId);
                                                     }
+                                                    return null;
+                                                }
 
-                                                    @Override
-                                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                                @Override
+                                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
 
-                                                        if (b) {
-                                                            String logMessage = dataSnapshot.getValue().toString();
-                                                            Log.d("testRunTran1", "counter: " + logMessage);
-                                                        } else {
-                                                            Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
-                                                        }
+                                                    if (b) {
+                                                        String logMessage = dataSnapshot.getValue().toString();
+                                                        Log.d("testRunTran1", "counter: " + logMessage);
+                                                    } else {
+                                                        Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
                                                     }
-                                                });
-                                            }
+                                                }
+                                            });
+                                        }
                                         return Transaction.success(mutableData);
                                     }
 
@@ -358,6 +359,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         @Override
                         public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
                         }
+
                         @Override
                         public void onCancelled(DatabaseError databaseError) {
                             Log.w("a", "postComments:onCancelled", databaseError.toException());
@@ -365,26 +367,26 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                     Toast.LENGTH_SHORT).show();
                         }
                     };
-                    if(user.joined){
+                    if (user.joined) {
                         //すでに部屋に入っているので何もしない
-                    }else{
+                    } else {
                         user.joined = true;
                         key = myRef.push().getKey();
                         user.userKey = key;
-                        registUserID(myRef,user);
+                        registUserID(myRef, user);
                         user.userName = userName.getText().toString();
                         myRef.addChildEventListener(childEventListener);
                         roomCreateButton.setText("部屋を退出する");
                     }
-                }else if(user.joined == true){
+                } else if (user.joined == true) {
                     //すでに部屋に入っているときの処理
                     //退出する
                     //部屋の人数 numberOfUserをデクリメントして，自分自身のremoveする．
                     myRef.child("numberOfUser").runTransaction(new Transaction.Handler() {
                         @Override
                         public Transaction.Result doTransaction(MutableData mutableData) {
-                            int temp = mutableData.getValue(int.class) -1;
-                            if (temp == 0){
+                            int temp = mutableData.getValue(int.class) - 1;
+                            if (temp == 0) {
                                 myRef.removeValue();
                                 return null;
                             }
@@ -392,8 +394,10 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
                             return Transaction.success(mutableData);
                         }
+
                         @Override
-                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {}
+                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                        }
                     });
                     myRef.child(user.userKey).removeValue();
 
@@ -403,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 }
             }
         });
-
+    }
         @Override
         public void onDestroy(){
             super.onDestroy();
@@ -604,7 +608,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     }
                 }
             }
-        }
+
 
 
         //テスト
