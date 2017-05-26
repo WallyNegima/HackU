@@ -23,7 +23,6 @@
 
         <receiver android:name=".BlueToothReceiver"></receiver>
 
-        <activity android:name=".ExecuteOnDevice"></activity>
     </application>
 
 </manifest>
