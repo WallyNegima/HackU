@@ -99,22 +99,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //テストボタン
-        button = (Button)findViewById(R.id.button);
-        editText = (EditText)findViewById(R.id.edittext);
-
-        roomCreateButton = (Button)findViewById(R.id.userCreate); //部屋を作る･退出する
-        btListButton = (Button)findViewById(R.id.btbutton); //ペアリングしているbt機器をダイアログで表示･接続する機器を選択
-        lightOnLed = (Button)findViewById(R.id.amin_light_on_led); //LEDを光らせる
-        lightOffLed = (Button)findViewById(R.id.amin_light_off_led); //LEDoffにする
-        userName = (EditText)findViewById(R.id.userName); //部屋に入る時のユーザー名
-        roomNumber = (EditText)findViewById(R.id.roomNumber); //入る部屋の番号
-        btText = (TextView)findViewById(R.id.bt_text); //ペアリングしている機器一覧
-        deviceText = (TextView)findViewById(R.id.device); //わからない
-        userNum = 0;
-        devices1 = new ArrayList<>();
-
-        user = new User();
 
         //--------------BlueToothLED
         mInputTextView = (TextView)findViewById(R.id.inputValue);
