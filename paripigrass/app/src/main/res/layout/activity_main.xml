@@ -49,8 +49,8 @@
             android:layout_width="400px"
             android:layout_height="wrap_content"
             android:hint="roomNumber"
-            android:digits="1234567890"
-            />
+            android:digits="1234567890" />
+
         <EditText
             android:id="@+id/userName"
             android:layout_width="400px"
@@ -109,7 +109,7 @@
 
             <TextView
                 android:id="@+id/statusValue"
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 />
 
@@ -118,6 +118,12 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 />
+
+            <EditText
+                android:id="@+id/amin_write_direction"
+                android:layout_width="400dp"
+                android:layout_height="wrap_content"
+                android:hint="送りたい文字を書いてね" />
 
             <Button android:id="@+id/writeButton"
                 android:layout_width="fill_parent"

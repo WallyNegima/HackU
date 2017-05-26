@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
     Button button, roomCreateButton, kanpaiButton, btListButton;
-    EditText editText, userName, roomNumber;
+    EditText editText, userName, roomNumber, mDirection;
     Context act = this;
     ChildEventListener childEventListener;
     String key;
@@ -113,6 +113,9 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     /** BluetoothのOutputStream. */
     OutputStream mmOutputStream = null;
 
+    /** 指示送る文字列 **/
+    private String sendMessage;
+
     /* 音声認識で使うよーんwwwwww  */
     private TextView txvAction;
     private TextView txvRec;
@@ -133,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         btListButton = (Button)findViewById(R.id.btdevice);
         editText = (EditText) findViewById(R.id.edittext);
         userName = (EditText) findViewById(R.id.userName);
+        mDirection = (EditText)findViewById(R.id.amin_write_direction);
         roomNumber = (EditText) findViewById(R.id.roomNumber);
         test_tv = (TextView) findViewById(R.id.test_tv);
         btdevicename = (TextView)findViewById(R.id.btdevicename);
@@ -553,9 +557,11 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 //接続中のみ書き込みを行う//
                 if(connectFlg) {
                     try {
-                        mmOutputStream.write("L".getBytes());
-                        //---------------書き込み
-                        mmOutputStream.write("2".getBytes());
+                        // EditText(mDirection)からの文字列取得
+                        sendMessage = mDirection.getText().toString();
+                        // マイコンへ送る
+                        mmOutputStream.write(sendMessage.getBytes());
+
                         mStatusTextView.setText("Write");
                     } catch (IOException e) {
                         Message valueMsg = new Message();
@@ -575,7 +581,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 int action = msg.what;
                 String msgStr = (String)msg.obj;
                 if(action == VIEW_INPUT) {
-                    mInputTextView.setText(msgStr);
+                    mInputTextView.setText("　　" + msgStr);
                 } else if(action == VIEW_STATUS) {
                     mStatusTextView.setText(msgStr);
                 }
@@ -606,7 +612,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             break;
                         case "乾杯":
                             Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
-
                             try{
                                 // "L"は光らせる
                                 mmOutputStream.write("L".getBytes());
@@ -639,15 +644,85 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         case "一気飲みします":
                             Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
                             break;
-                        case "LEDオン":
-                            try{
-                                mmOutputStream.write("L".getBytes());
-                                mStatusTextView.setText("L");
-                            } catch (IOException e) {
-                                Message valueMsg = new Message();
+                        case "赤色":
+
+
+                            InputStream mmlnStream = null;
+                            Message valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "connecting...";
+                            mHandler.sendMessage(valueMsg);
+
+
+                            try {
+
+                                // 取得したデバイス名を使ってBlueToothでSocket通信
+                                mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                                mSocket.connect();
+                                mmlnStream = mSocket.getInputStream();
+                                mmOutputStream = mSocket.getOutputStream();
+
+                                //InputStreamのバッファを格納
+                                byte[] buffer = new byte[1024];
+
+                                //習得したバッファのサイズを格納
+                                int bytes;
+                                valueMsg = new Message();
                                 valueMsg.what = VIEW_STATUS;
-                                valueMsg.obj = "Error3:" + e;
+                                valueMsg.obj = "connected...";
                                 mHandler.sendMessage(valueMsg);
+
+                                connectFlg = true;
+
+                                while(isRunning) {
+                                    //InputStream の読み込み
+                                    bytes = mmlnStream.read(buffer);
+                                    Log.i(TAG, "bytes=" + bytes);
+
+                                    //String型に変換
+                                    String readMsg = new String(buffer, 0, bytes);
+
+                                    //null以外なら表示
+                                    if(readMsg.trim() != null && !readMsg.trim().equals("")) {
+                                        Log.i(TAG, "value=" + readMsg.trim());
+
+                                        valueMsg = new Message();
+                                        valueMsg.what = VIEW_INPUT;
+                                        valueMsg.obj = readMsg;//
+                                        mHandler.sendMessage(valueMsg);
+                                    } else {
+                                        Log.i(TAG, "value = nodata");
+                                    }
+                                }
+                            } catch (Exception e) {
+                                valueMsg = new Message();
+                                valueMsg.what = VIEW_STATUS;
+                                valueMsg.obj = "Error1:" + e;
+                                mHandler.sendMessage(valueMsg);
+
+                                try {
+                                    mSocket.close();
+                                } catch (Exception ee) {}
+                                isRunning = false;
+                                connectFlg = false;
+                            }
+
+                            try{
+                                Thread.sleep(500); //3000ミリ秒Sleepする
+                            }catch(InterruptedException e){}
+
+
+
+
+
+                            try{
+                                mmOutputStream.write("red".getBytes());
+                                //mStatusTextView.setText("red");
+                            } catch (IOException e) {
+                                Message valueMsg1 = new Message();
+                                valueMsg1.what = VIEW_STATUS;
+                                valueMsg1.obj = "Error3:" + e;
+                                mHandler.sendMessage(valueMsg1);
                             }
                             break;
                     }
