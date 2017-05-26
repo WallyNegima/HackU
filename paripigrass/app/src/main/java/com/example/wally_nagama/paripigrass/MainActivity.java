@@ -73,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
     /** Connect確認用フラグ */
     private boolean connectFlg = false;
-
     /** BluetoothのOutputStream. */
     OutputStream mmOutputStream = null;
 
