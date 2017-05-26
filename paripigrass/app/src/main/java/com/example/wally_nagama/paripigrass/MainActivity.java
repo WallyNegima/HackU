@@ -1,5 +1,6 @@
 package com.example.wally_nagama.paripigrass;
 
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -51,19 +52,18 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton, kanpaiButton;
+    Button button, roomCreateButton, kanpaiButton, btListButton;
     EditText editText, userName, roomNumber;
     Context act = this;
     ChildEventListener childEventListener;
     String key;
     int color;
-    TextView test_tv;
+    TextView test_tv, btdevicename;
     int removedUserId = 0;
     BluetoothAdapter btAdapter;
     BlueToothReceiver btReceiver;
     List<BluetoothDevice> devices1;
     ArrayList<String> itemArray = new ArrayList<String>();
-    ArrayList<String> mArrayAdapter = new ArrayList<String>();
     final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
 
     /* tag */
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     /* デバイス名 */
-    private final String DEVICE_NAME = "RN52-FF5A";
+    //private final String DEVICE_NAME = "RN52-FF5A";
 
     /* Soket */
     private BluetoothSocket mSocket;
@@ -130,12 +130,15 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         button = (Button) findViewById(R.id.button);
         roomCreateButton = (Button) findViewById(R.id.userCreate);
         kanpaiButton = (Button) findViewById(R.id.kanpai);
+        btListButton = (Button)findViewById(R.id.btdevice);
         editText = (EditText) findViewById(R.id.edittext);
         userName = (EditText) findViewById(R.id.userName);
         roomNumber = (EditText) findViewById(R.id.roomNumber);
         test_tv = (TextView) findViewById(R.id.test_tv);
+        btdevicename = (TextView)findViewById(R.id.btdevicename);
 
         user = new User();
+        devices1 = new ArrayList<>();
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -156,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         writeButton.setOnClickListener(this);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mStatusTextView.setText("SearchDevice");
+        /*
         Set<BluetoothDevice> devices = mAdapter.getBondedDevices();
         for (BluetoothDevice device : devices) {
             if (device.getName().equals(DEVICE_NAME)) {
@@ -163,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 mDevice = device;
             }
         }
+        */
 
         //音声認識
         txvAction = (TextView) findViewById(R.id.amin_txvAction);
@@ -201,6 +206,46 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     Toast.makeText(MainActivity.this,
                             "ActivityNotFoundException", Toast.LENGTH_LONG).show();
                 }
+            }
+        });
+
+        /*---     ペアリング済みBT機器から接続する機器を選ぶボタン！   ----*/
+        //デバイスを検索する
+        btAdapter = BluetoothAdapter.getDefaultAdapter();
+        btListButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                itemArray.clear();
+                // ペアリング済みのデバイス一覧を取得
+                Set<BluetoothDevice> btDevices = btAdapter.getBondedDevices();
+                for (BluetoothDevice device : btDevices) {
+                    itemArray.add(device.getName());
+                    devices1.add(device);
+                }
+                String[] items = (String[])itemArray.toArray(new String[0]);
+                int defaultItem = 0; // デフォルトでチェックされているアイテム
+                checkedItems.add(defaultItem);
+                new AlertDialog.Builder(act)
+                        .setTitle("接続する機器")
+                        .setSingleChoiceItems(items, defaultItem, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                checkedItems.clear();
+                                checkedItems.add(which);
+                            }
+                        })
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (!checkedItems.isEmpty()) {
+                                    Log.d("checkedItem:", "" + checkedItems.get(0));
+                                    btdevicename.setText(devices1.get(checkedItems.get(0)).getName());
+                                    mDevice = devices1.get(checkedItems.get(0));
+                                }
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
             }
         });
 
