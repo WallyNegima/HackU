@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
                     valueMsg = new Message();
                     valueMsg.what = VIEW_INPUT;
-                    valueMsg.obj = readMsg;
+                    valueMsg.obj = readMsg;//
                     mHandler.sendMessage(valueMsg);
                 } else {
                     Log.i(TAG, "value = nodata");
