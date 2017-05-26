@@ -5,16 +5,64 @@
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "Wire.h"
 
+
+
+#include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+#include <avr/power.h>
+#endif
+
+#define PIN 12
+#define NUM_LEDS 20
+#define BRIGHTNESS 50
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_RGB + NEO_KHZ800);
+
+
+
 #define POWER_ON 9
 #define CMD 7
 #define INTERRUPT_PIN 2
 #define LED_PIN 13
 #define CANPAI_THRESHOLD 45000000
 #define CANPAI_WAITTIME 500
+#define Array 100
+
+byte neopix_gamma[] = {
+  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
+  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
+  2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
+  5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
+  10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+  17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+  25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+  37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+  51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+  69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+  90, 92, 93, 95, 96, 98, 99, 101, 102, 104, 105, 107, 109, 110, 112, 114,
+  115, 117, 119, 120, 122, 124, 126, 127, 129, 131, 133, 135, 137, 138, 140, 142,
+  144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 167, 169, 171, 173, 175,
+  177, 180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213,
+  215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255
+};
+
+
+int delayval = 500; // delay for half a second
+int wait = 100;
+int shu_wait = 50;
+int shu_tail = 3;
+
+int mycolor = 10;
 
 int counter = 1, counterold = 1, canpaicounter = 1, canpaicounterold = 1;
 int loopcounter, canpailoopcounter;
 unsigned long time0, canpaitime0;
+
+struct accelFlags {
+  int counter, counter_old, loopcounter;
+  unsigned long time0;
+} canpai, ikki;
 
 MPU6050 mpu;
 bool blinkState = false;
@@ -47,17 +95,19 @@ volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin h
 
 void setup() {
   Serial.begin(9600);
-  Serial.setTimeout(500);
+  Serial.setTimeout(1000);
   Wire.begin();
   Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
 
   pinMode(POWER_ON, OUTPUT);
   pinMode(CMD, OUTPUT);
   pinMode(12, OUTPUT);
+  pinMode(7, OUTPUT);
   digitalWrite(CMD, HIGH);
   digitalWrite(POWER_ON, HIGH);//RN52の電源起動動作
   delay(1500);
   digitalWrite(POWER_ON, LOW);
+  digitalWrite(7,HIGH);
 
   // initialize device
   Serial.println(F("Initializing I2C devices..."));
@@ -108,32 +158,45 @@ void setup() {
 
   // configure LED for output
   pinMode(LED_PIN, OUTPUT);
+
+
+#if defined (__AVR_ATtiny85__)
+  if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
+#endif
+  strip.setBrightness(BRIGHTNESS);
+  strip.begin();
+  strip.show();
+  pika_red();
 }
 
-VectorInt16 myRealaccel;
+VectorInt16 myRealaccel[Array] ;
 
 void loop() {
 
   if (mpuInterrupt) {
-    myRealaccel = read_realaccel_form_mpu6050();
+    int i;
+    for (i = 0; i < Array; i++) {
+      myRealaccel[i + 1] = myRealaccel[i];
+    }
+    myRealaccel[0] = read_realaccel_form_mpu6050();
   }
 
   /////////////////////////////////////////CANPAI_DETECTION/////////////////////////////////
 
-  if (CANPAI_THRESHOLD <= ((long int)myRealaccel.x * (long int)myRealaccel.x + (long int)myRealaccel.y * (long int)myRealaccel.y)) {
+  if (CANPAI_THRESHOLD <= ((long int)myRealaccel[0].x * (long int)myRealaccel[0].x + (long int)myRealaccel[0].y * (long int)myRealaccel[0].y)) {
     /*Serial.print("kanpai!" + (String)counter);
       Serial.println("loopc" + (String)loopcounter);
       Serial.println(millis());
       Serial.println(time0);*/
+    if (counter == 1 && millis() - time0 > CANPAI_WAITTIME) {
+      Serial.println("kanpai!!!");
+      time0 = millis();
+    }
     ++counter;
 
   } else if (counterold != 1) {
     counter = 1;
     ++loopcounter;
-    if (millis() - time0 > CANPAI_WAITTIME) {
-      Serial.println("kanpai!!!");
-    }
-    time0 = millis();
   }
   counterold = counter;
 
@@ -149,15 +212,15 @@ void loop() {
     Serial.println(canpaitime0);
     ++canpaicounter;
 
-  } else if (canpaicounterold != 1) {
+    } else if (canpaicounterold != 1) {
     canpaicounter = 1;
     ++canpailoopcounter;
     if (millis() - canpaitime0 > 500) {
       Serial.println("ikkistart!!!");
     }
     canpaitime0 = millis();
-  }
-  canpaicounterold = canpaicounter;*/
+    }
+    canpaicounterold = canpaicounter;*/
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
 }
@@ -235,10 +298,13 @@ void check_commands(String S_input) {
     String data_from_rom = read_data_from_rom();
     Serial.println("current," + data_from_rom);
   }
-  else if (S_input.equals("L")) {
-    digitalWrite(12, HIGH);
-    delay(1000);
-    digitalWrite(12, LOW);
+  else if (S_input.equals("ledon")) {
+    pika_blue();
+    Serial.println("Led on");
+  }
+  else if (S_input.equals("ledoff")) {
+    no_light();
+    Serial.println("Led off");
   }
   else {
     Serial.println(S_input + " is not command");
@@ -264,3 +330,97 @@ String read_data_from_rom(void) {
   return data_from_rom;
 }
 
+void pika_red() {
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, strip.Color(0, 255, 0));
+    strip.show();
+  }
+}
+
+void pika_green() {
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, strip.Color(255, 0, 0));
+    strip.show();
+  }
+}
+
+void pika_blue() {
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, strip.Color(0, 0, 255));
+    strip.show();
+  }
+}
+
+void pika_rainbow() {
+  uint16_t i, j;
+
+  for (j = 0; j < 256; j++) {
+    for (i = 0; i < strip.numPixels(); i++) {
+      strip.setPixelColor(i, Wheel((i + j) & 255));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+void pika_rainbow2() {
+  int i, j;
+
+  for (j = 0; j < 256; j++) {
+    for (i = 0; i < strip.numPixels(); i++) {
+      strip.setPixelColor(i, Wheel((i + j) & 255));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+void shu_red() {
+  for (int i = 0; i < strip.numPixels() + shu_tail + 1; i++) {
+    if (i >= strip.numPixels()) {
+      //先頭が全体のLED数の先を行く時
+      strip.setPixelColor(i - (shu_tail + 1), strip.Color(0, 0, 0));
+      strip.show();
+    } else {
+      strip.setPixelColor(i, strip.Color(0, 255, 0));
+      strip.show();
+      if (i < shu_tail + 1) {
+        //何もせず
+      } else {
+        strip.setPixelColor(i - (shu_tail + 1), strip.Color(0, 0, 0));
+        strip.show();
+      }
+    }
+    delay(shu_wait);
+  }
+}
+
+
+void ziwaziwa() {
+  for (int j = 0; j < 256; j++) {
+    for (int i = 0; i < strip.numPixels(); i++) {
+      //strip.setPixel(i, Wheel(mycolor & 255));
+    }
+    strip.show();
+  }
+}
+
+void no_light() {
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, strip.Color(0, 0, 0));
+    strip.show();
+  }
+}
+
+uint32_t Wheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if (WheelPos < 85) {
+    return strip.Color(0, 255 - WheelPos * 3, WheelPos * 3, 0);
+  }
+  if (WheelPos < 170) {
+    WheelPos -= 85;
+    return strip.Color(WheelPos * 3, 0, 255 - WheelPos * 3, 0);
+  }
+  WheelPos -= 170;
+  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0, 0);
+}
