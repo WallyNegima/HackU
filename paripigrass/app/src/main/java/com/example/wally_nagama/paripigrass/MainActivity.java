@@ -270,6 +270,8 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             if(connectFlg) {
                 try {
                     mmOutputStream.write("L".getBytes());
+                    //---------------書き込み
+                    mmOutputStream.write("2".getBytes());
                     mStatusTextView.setText("Write");
                 } catch (IOException e) {
                     Message valueMsg = new Message();
