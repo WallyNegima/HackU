@@ -11,6 +11,7 @@ public class User {
     public int nextUserId;
     public String sensorValue;
     public boolean joined = false;
+    public boolean kanpai_gotNewColor = false; //falseなら乾杯でリッスン中，trueなら新しい色をもらった後
     public int now_color = 0;
 
     //コンストラクタ

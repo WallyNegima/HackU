@@ -20,6 +20,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -263,30 +265,51 @@ public class MainActivity extends AppCompatActivity {
         kanpaiButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+                user.kanpai_gotNewColor = false;
                 myRef.child("now_color").runTransaction(new Transaction.Handler() {
                     @Override
                     public Transaction.Result doTransaction(MutableData mutableData) {
-                        if(mutableData.getValue() == null){
+                        if(mutableData.getValue() == null || mutableData.getValue(int.class) == 0){
                             mutableData.setValue(user.now_color);
+                            myRef.child("now_color").addListenerForSingleValueEvent(
+                                    new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            // Get user value
+                                            if(dataSnapshot.getKey().equals("now_color")){
+                                                if(dataSnapshot.getValue(int.class) != 0){
+                                                    user.now_color = dataSnapshot.getValue(int.class);
+                                                    test_tv.setText(user.now_color + "!");
+                                                    user.kanpai_gotNewColor = true;
+                                                }
+                                            }
+                                        }
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+                                            Log.w("kanpai", "getUser:onCancelled", databaseError.toException());
+                                        }
+                                    });
+                            //誰も乾杯してくれなかった時
                             HandlerThread handlerThread = new HandlerThread("foo");
                             handlerThread.start();
                             new Handler(handlerThread.getLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    // ここに３秒後に実行したい処理
-                                    myRef.child("now_color").runTransaction(new Transaction.Handler() {
-                                        @Override
-                                        public Transaction.Result doTransaction(MutableData mutableData) {
-                                            user.now_color = mutableData.getValue(int.class);
-                                            myRef.child("now_color").removeValue();
-                                            test_tv.setText(user.now_color + "!");
-                                            Log.d("kanpai", "add null!");
-                                            return Transaction.success(mutableData);
-                                        }
-                                        @Override
-                                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                                        }
-                                    });
+                                    // ここにn秒後に実行したい処理
+                                    if(!user.kanpai_gotNewColor){
+                                        myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                                            @Override
+                                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                                mutableData.setValue(0);
+                                                test_tv.setText("誰も乾杯せず");
+                                                return Transaction.success(mutableData);
+                                            }
+                                            @Override
+                                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                            }
+                                        });
+                                    }
+
                                 }
                             }, 200);
 
