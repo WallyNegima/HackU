@@ -19,14 +19,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
-import com.google.firebase.database.ValueEventListener;
-
-import org.w3c.dom.Comment;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -105,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
                                                     mutableData.setValue(user.nextUserId);
                                                     return Transaction.success(mutableData);
                                                 }
-
                                                 @Override
                                                 public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
 //                                         TODO   消す処理
@@ -130,12 +122,22 @@ public class MainActivity extends AppCompatActivity {
                                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                             @Override
                                             public void run() {
-//                                         TODO   消す処理
-                                                test_tv.setText("");
-                                                myRef.child("Roulette").child("count").setValue(count-1);
-                                                myRef.child("Roulette").child("light_now").setValue(user.nextUserId);
+                                                myRef.child("Roulette").child("light_now").runTransaction(new Transaction.Handler() {
+                                                    @Override
+                                                    public Transaction.Result doTransaction(MutableData mutableData) {
+                                                        mutableData.setValue(user.nextUserId);
+                                                        return Transaction.success(mutableData);
+                                                    }
+
+                                                    @Override
+                                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+//                                                      TODO   消す処理
+                                                        myRef.child("Roulette").child("count").setValue(count-1);
+                                                        test_tv.setText("");
+                                                    }
+                                                });
                                             }
-                                        }, 500);
+                                        }, 100);
                                     }else{
                                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                             @Override
@@ -236,21 +238,16 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public Transaction.Result doTransaction(MutableData mutableData) {
                             int temp = mutableData.getValue(int.class) -1;
+                            if (temp == 0){
+                                myRef.removeValue();
+                                return null;
+                            }
                             mutableData.setValue(temp);
 
                             return Transaction.success(mutableData);
                         }
-
                         @Override
-                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
-                            if (b) {
-                                String logMessage = dataSnapshot.getValue().toString();
-                                Log.d("testRunTran1", "counter: " + logMessage);
-                            } else {
-                                Log.d("testRunTran1", databaseError.getMessage(), databaseError.toException());
-                            }
-                        }
+                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {}
                     });
                     myRef.child(user.userKey).removeValue();
 
@@ -267,43 +264,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                    int temp = user.now_color;
                     @Override
                     public Transaction.Result doTransaction(MutableData mutableData) {
-                        if(mutableData.getValue() == null){
-                            mutableData.setValue(user.now_color);
-                            HandlerThread handlerThread = new HandlerThread("foo");
-                            handlerThread.start();
-                            new Handler(handlerThread.getLooper()).postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    // ここに３秒後に実行したい処理
-                                    myRef.child("now_color").runTransaction(new Transaction.Handler() {
-                                        @Override
-                                        public Transaction.Result doTransaction(MutableData mutableData) {
-                                            user.now_color = mutableData.getValue(int.class);
-                                            myRef.child("now_color").setValue(null);
-                                            test_tv.setText(user.now_color + "!");
-                                            Log.d("kanpai", "add null!");
-                                            return Transaction.success(mutableData);
-                                        }
-                                        @Override
-                                        public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                                        }
-                                    });
-                                }
-                            }, 50);
+                        if(mutableData.getValue() == null || mutableData.getValue(int.class) == 0){
 
                         }else{
-                            int temp = user.now_color;
                             user.now_color = mutableData.getValue(int.class);
-                            myRef.child("now_color").setValue(temp);
-                            test_tv.setText(user.now_color + "!");
                             Log.d("kanpai", "add now_color!");
+                            mutableData.setValue(0);
                         }
                         return Transaction.success(mutableData);
                     }
                     @Override
                     public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
                     }
                 });
             }
