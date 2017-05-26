@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
             }
         } else if(v.equals(writeButton)) {
-            //接続中のみ書き込みを行う////
+            //接続中のみ書き込みを行う
             if(connectFlg) {
                 try {
                     mmOutputStream.write("2".getBytes());
