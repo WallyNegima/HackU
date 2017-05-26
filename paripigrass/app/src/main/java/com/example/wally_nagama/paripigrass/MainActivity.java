@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.amin_heybutton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                txvAction.setText(R.string.amin_heybutton);
+                txvAction.setText("へ〜〜〜〜！！！！");
                 //Toast.makeText(context, "乾杯", Toast.LENGTH_SHORT).show();
             }
         });
@@ -117,28 +117,28 @@ public class MainActivity extends AppCompatActivity {
 
                 /*---   ルーレット   */
                     case "ルーレットモード":
-                        Toast.makeText(this, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
                         break;
 
                     case "ルーレット":
-                        Toast.makeText(this, R.string.amin_rouletteMode, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
                         break;
 
 
                 /*---   司会者   ---*/
                     case "司会者になりました":
-                        Toast.makeText(this, R.string.amin_speech, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
                         break;
                     case "司会者":
-                        Toast.makeText(this, R.string.amin_speech, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
                         break;
 
                 /*---   一気飲み   ---*/
                     case "一気飲み":
-                        Toast.makeText(this, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
                         break;
                     case "一気飲みします":
-                        Toast.makeText(this, R.string.amin_ikkinomi, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
                         break;
 
 
