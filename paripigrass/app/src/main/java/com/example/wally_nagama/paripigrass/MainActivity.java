@@ -1,5 +1,6 @@
 package com.example.wally_nagama.paripigrass;
 
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -8,7 +9,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.icu.text.LocaleDisplayNames;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -52,19 +52,18 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton, kanpaiButton;
-    EditText editText, userName, roomNumber;
+    Button button, roomCreateButton, kanpaiButton, btListButton;
+    EditText editText, userName, roomNumber, mDirection;
     Context act = this;
     ChildEventListener childEventListener;
     String key;
     int color;
-    TextView test_tv;
+    TextView test_tv, btdevicename;
     int removedUserId = 0;
     BluetoothAdapter btAdapter;
     BlueToothReceiver btReceiver;
     List<BluetoothDevice> devices1;
     ArrayList<String> itemArray = new ArrayList<String>();
-    ArrayList<String> mArrayAdapter = new ArrayList<String>();
     final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
 
     /* tag */
@@ -80,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     /* デバイス名 */
-    private final String DEVICE_NAME = "RN52-FF5A";
+    //private final String DEVICE_NAME = "RN52-FF5A";
 
     /* Soket */
     private BluetoothSocket mSocket;
@@ -114,6 +113,9 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     /** BluetoothのOutputStream. */
     OutputStream mmOutputStream = null;
 
+    /** 指示送る文字列 **/
+    private String sendMessage;
+
     /* 音声認識で使うよーんwwwwww  */
     private TextView txvAction;
     private TextView txvRec;
@@ -131,12 +133,16 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         button = (Button) findViewById(R.id.button);
         roomCreateButton = (Button) findViewById(R.id.userCreate);
         kanpaiButton = (Button) findViewById(R.id.kanpai);
+        btListButton = (Button)findViewById(R.id.btdevice);
         editText = (EditText) findViewById(R.id.edittext);
         userName = (EditText) findViewById(R.id.userName);
+        mDirection = (EditText)findViewById(R.id.amin_write_direction);
         roomNumber = (EditText) findViewById(R.id.roomNumber);
         test_tv = (TextView) findViewById(R.id.test_tv);
+        btdevicename = (TextView)findViewById(R.id.btdevicename);
 
         user = new User();
+        devices1 = new ArrayList<>();
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,6 +163,15 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         writeButton.setOnClickListener(this);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mStatusTextView.setText("SearchDevice");
+        /*
+        Set<BluetoothDevice> devices = mAdapter.getBondedDevices();
+        for (BluetoothDevice device : devices) {
+            if (device.getName().equals(DEVICE_NAME)) {
+                mStatusTextView.setText("find:" + device.getName());
+                mDevice = device;
+            }
+        }
+        */
 
         //音声認識
         txvAction = (TextView) findViewById(R.id.amin_txvAction);
@@ -195,6 +210,46 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     Toast.makeText(MainActivity.this,
                             "ActivityNotFoundException", Toast.LENGTH_LONG).show();
                 }
+            }
+        });
+
+        /*---     ペアリング済みBT機器から接続する機器を選ぶボタン！   ----*/
+        //デバイスを検索する
+        btAdapter = BluetoothAdapter.getDefaultAdapter();
+        btListButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                itemArray.clear();
+                // ペアリング済みのデバイス一覧を取得
+                Set<BluetoothDevice> btDevices = btAdapter.getBondedDevices();
+                for (BluetoothDevice device : btDevices) {
+                    itemArray.add(device.getName());
+                    devices1.add(device);
+                }
+                String[] items = (String[])itemArray.toArray(new String[0]);
+                int defaultItem = 0; // デフォルトでチェックされているアイテム
+                checkedItems.add(defaultItem);
+                new AlertDialog.Builder(act)
+                        .setTitle("接続する機器")
+                        .setSingleChoiceItems(items, defaultItem, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                checkedItems.clear();
+                                checkedItems.add(which);
+                            }
+                        })
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (!checkedItems.isEmpty()) {
+                                    Log.d("checkedItem:", "" + checkedItems.get(0));
+                                    btdevicename.setText(devices1.get(checkedItems.get(0)).getName());
+                                    mDevice = devices1.get(checkedItems.get(0));
+                                }
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
             }
         });
 
@@ -554,9 +609,11 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 //接続中のみ書き込みを行う//
                 if(connectFlg) {
                     try {
-                        mmOutputStream.write("L".getBytes());
-                        //---------------書き込み
-                        mmOutputStream.write("2".getBytes());
+                        // EditText(mDirection)からの文字列取得
+                        sendMessage = mDirection.getText().toString();
+                        // マイコンへ送る
+                        mmOutputStream.write(sendMessage.getBytes());
+
                         mStatusTextView.setText("Write");
                     } catch (IOException e) {
                         Message valueMsg = new Message();
@@ -576,7 +633,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 int action = msg.what;
                 String msgStr = (String)msg.obj;
                 if(action == VIEW_INPUT) {
-                    mInputTextView.setText(msgStr);
+                    mInputTextView.setText("　　" + msgStr);
                 } else if(action == VIEW_STATUS) {
                     mStatusTextView.setText(msgStr);
                 }
@@ -607,7 +664,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             break;
                         case "乾杯":
                             Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
-
                             try{
                                 // "L"は光らせる
                                 mmOutputStream.write("L".getBytes());
@@ -640,15 +696,85 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         case "一気飲みします":
                             Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
                             break;
-                        case "LEDオン":
-                            try{
-                                mmOutputStream.write("L".getBytes());
-                                mStatusTextView.setText("L");
-                            } catch (IOException e) {
-                                Message valueMsg = new Message();
+                        case "赤色":
+
+
+                            InputStream mmlnStream = null;
+                            Message valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "connecting...";
+                            mHandler.sendMessage(valueMsg);
+
+
+                            try {
+
+                                // 取得したデバイス名を使ってBlueToothでSocket通信
+                                mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                                mSocket.connect();
+                                mmlnStream = mSocket.getInputStream();
+                                mmOutputStream = mSocket.getOutputStream();
+
+                                //InputStreamのバッファを格納
+                                byte[] buffer = new byte[1024];
+
+                                //習得したバッファのサイズを格納
+                                int bytes;
+                                valueMsg = new Message();
                                 valueMsg.what = VIEW_STATUS;
-                                valueMsg.obj = "Error3:" + e;
+                                valueMsg.obj = "connected...";
                                 mHandler.sendMessage(valueMsg);
+
+                                connectFlg = true;
+
+                                while(isRunning) {
+                                    //InputStream の読み込み
+                                    bytes = mmlnStream.read(buffer);
+                                    Log.i(TAG, "bytes=" + bytes);
+
+                                    //String型に変換
+                                    String readMsg = new String(buffer, 0, bytes);
+
+                                    //null以外なら表示
+                                    if(readMsg.trim() != null && !readMsg.trim().equals("")) {
+                                        Log.i(TAG, "value=" + readMsg.trim());
+
+                                        valueMsg = new Message();
+                                        valueMsg.what = VIEW_INPUT;
+                                        valueMsg.obj = readMsg;//
+                                        mHandler.sendMessage(valueMsg);
+                                    } else {
+                                        Log.i(TAG, "value = nodata");
+                                    }
+                                }
+                            } catch (Exception e) {
+                                valueMsg = new Message();
+                                valueMsg.what = VIEW_STATUS;
+                                valueMsg.obj = "Error1:" + e;
+                                mHandler.sendMessage(valueMsg);
+
+                                try {
+                                    mSocket.close();
+                                } catch (Exception ee) {}
+                                isRunning = false;
+                                connectFlg = false;
+                            }
+
+                            try{
+                                Thread.sleep(500); //3000ミリ秒Sleepする
+                            }catch(InterruptedException e){}
+
+
+
+
+
+                            try{
+                                mmOutputStream.write("red".getBytes());
+                                //mStatusTextView.setText("red");
+                            } catch (IOException e) {
+                                Message valueMsg1 = new Message();
+                                valueMsg1.what = VIEW_STATUS;
+                                valueMsg1.obj = "Error3:" + e;
+                                mHandler.sendMessage(valueMsg1);
                             }
                             break;
                     }
