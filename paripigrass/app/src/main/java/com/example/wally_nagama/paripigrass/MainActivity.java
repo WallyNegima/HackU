@@ -172,9 +172,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Random rnd = new Random();
-                myRef.child("Roulette").child("light_now").setValue(1);
-                myRef.child("Roulette").child("count").setValue(rnd.nextInt(5) + 10);
+                roulette.start();
 //                TODO::LED消灯
             }
         });
@@ -355,6 +353,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             if (dataSnapshot.getKey().equals("Roulette")) {
                                 if (dataSnapshot.child("light_now").getValue(int.class) == user.userId) {
                                     final int count = dataSnapshot.child("count").getValue(int.class);
+                                    dataSnapshot.child("color").getValue(int.class);
 //                                    TODO::ピカピカ〜
                                     test_tv.setText("hfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhf");
 //                                    countが0やったら終了
@@ -464,17 +463,15 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                     Toast.LENGTH_SHORT).show();
                         }
                     };
-                    if (user.joined) {
-                        //すでに部屋に入っているので何もしない
-                    } else {
-                        user.joined = true;
-                        key = myRef.push().getKey();
-                        user.userKey = key;
-                        registUserID(myRef, user);
-                        user.userName = userName.getText().toString();
-                        myRef.addChildEventListener(childEventListener);
-                        roomCreateButton.setText("部屋を退出する");
-                    }
+                    user.joined = true;
+                    key = myRef.push().getKey();
+                    user.userKey = key;
+                    registUserID(myRef, user);
+                    user.userName = userName.getText().toString();
+                    myRef.addChildEventListener(childEventListener);
+                    roulette = new Roulette(user,myRef);
+                    roomCreateButton.setText("部屋を退出する");
+
                 } else if (user.joined == true) {
                     //すでに部屋に入っているときの処理
                     //退出する
