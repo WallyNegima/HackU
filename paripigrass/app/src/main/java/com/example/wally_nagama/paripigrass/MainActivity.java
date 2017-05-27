@@ -760,9 +760,15 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 /*---   ルーレット   */
                         case "ルーレットモード":
                             Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+                            Random rnd = new Random();
+                            myRef.child("Roulette").child("light_now").setValue(1);
+                            myRef.child("Roulette").child("count").setValue(rnd.nextInt(5) + 10);
                             break;
                         case "ルーレット":
                             Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+                            Random rnd1 = new Random();
+                            myRef.child("Roulette").child("light_now").setValue(1);
+                            myRef.child("Roulette").child("count").setValue(rnd1.nextInt(5) + 10);
                             break;
                 /*--   司会者   ---*/
                         case "司会者になりました":
