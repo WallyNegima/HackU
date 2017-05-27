@@ -137,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     private TextView txvAction;
     private TextView txvRec;
     private static final int REQUEST_CODE = 0;
+    public Context context;
     private String result_voce;
 
 
@@ -169,10 +170,10 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                user.now_color = Integer.valueOf(editText.getText().toString());
                 Random rnd = new Random();
                 myRef.child("Roulette").child("light_now").setValue(1);
                 myRef.child("Roulette").child("count").setValue(rnd.nextInt(5) + 10);
+//                TODO::LED消灯
             }
         });
 
@@ -323,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             if (dataSnapshot.getKey().equals("Roulette")) {
                                 Log.d("Roulette", "Added");
                                 if (dataSnapshot.child("light_now").getValue(int.class) == user.userId) {
-//                                    TODO::ピカピカ〜
+//                                    TODO::LEDピカピカ〜
                                     test_tv.setText("hfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhf");
                                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                         @Override
@@ -337,7 +338,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
                                                 @Override
                                                 public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-//                                         TODO   消す処理
+//                                         TODO   LED消す処理
                                                     test_tv.setText("");
                                                 }
                                             });
@@ -368,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
                                                     @Override
                                                     public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-//                                                      TODO   消す処理
+//                                                      TODO   LED消す処理
                                                         myRef.child("Roulette").child("count").setValue(count - 1);
                                                         test_tv.setText("");
                                                     }
@@ -376,13 +377,14 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                             }
                                         }, 100);
                                     } else {
+//                                        TODO::LED色変える
                                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                             @Override
                                             public void run() {
 //                                        Roulette削除
                                                 myRef.child("Roulette").removeValue();
                                             }
-                                        }, 2000);
+                                        }, 5000);
                                     }
                                 }
                             }
@@ -443,6 +445,9 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                         }
                                     }
                                 });
+                            }
+                            if (dataSnapshot.getKey().equals("Roulette")){
+//                              TODO::LED ON
                             }
                         }
 
@@ -527,24 +532,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         if(!temp.equals(user.userKey) && count < 3){
 //                            自分以外のkeyの値を書き換え
                             myRef.child("now_color").child(temp).setValue(old_color);
-//                                    .runTransaction(new Transaction.Handler() {
-//                                @Override
-//                                public Transaction.Result doTransaction(MutableData mutableData) {
-//                                    mutableData.setValue(user.now_color);
-//                                    return Transaction.success(mutableData);
-//                                }
-//
-//                                @Override
-//                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-//                                    if (b){
-//                                        Log.d("kanpai::495",""+dataSnapshot);
-//                                    }else{
-//                                        Log.d("kanpai::497",""+databaseError);
-//                                    }
-//                                }
-//                            });
                         }
-
                     }
 
                     @Override
