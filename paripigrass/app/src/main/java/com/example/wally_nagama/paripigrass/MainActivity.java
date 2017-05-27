@@ -142,7 +142,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     private static final int REQUEST_CODE = 0;
     public Context context;
     private String result_voce;
-    private Roulette roulette;
 
 
 
