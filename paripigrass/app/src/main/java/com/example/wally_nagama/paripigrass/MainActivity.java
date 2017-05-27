@@ -144,7 +144,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     private String result_voce;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -387,6 +386,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             }
                             if (dataSnapshot.getKey().equals("Roulette")){
 //                              TODO::LED ON
+                                sendBtCommand(color2string((user.now_color+1)%8+1));
                             }
                         }
 
@@ -407,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     registUserID(myRef, user);
                     user.userName = userName.getText().toString();
                     myRef.addChildEventListener(childEventListener);
-                    roulette = new Roulette(user,myRef);
+                    roulette = new Roulette(user,myRef, mmOutputStream, mHandler);
                     roomCreateButton.setText("部屋を退出する");
 
                 } else  {
@@ -704,15 +704,11 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         /*---   ルーレット   */
                     case "ルーレットモード":
                         Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
-                        Random rnd = new Random();
-                        myRef.child("Roulette").child("light_now").setValue(1);
-                        myRef.child("Roulette").child("count").setValue(rnd.nextInt(5) + 10);
+                        roulette.start();
                         break;
                     case "ルーレット":
                         Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
-                        Random rnd1 = new Random();
-                        myRef.child("Roulette").child("light_now").setValue(1);
-                        myRef.child("Roulette").child("count").setValue(rnd1.nextInt(5) + 10);
+                        roulette.start();
                         break;
         /*--   司会者   ---*/
                     case "司会者になりました":
@@ -910,6 +906,44 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             mHandler.sendMessage(valueMsg1);
         }
     }
+
+    public String color2string(int color){
+        String str;
+        switch (color){
+            case 1:
+                str = "red";
+                break;
+            case 2:
+                str = "blue";
+                break;
+            case 3:
+                str = "green";
+                break;
+            case 4:
+                str = "purple";
+                break;
+            case 5:
+                str = "yellow";
+                break;
+            case 6:
+                str = "lightblue";
+                break;
+            case 7:
+                str = "pink";
+                break;
+            case 8:
+                str = "orange";
+                break;
+            default:
+                str = "ranbow";
+        }
+
+        return str;
+    }
+//    デバイスに送る文字列
+//            "ledoff"
+//            "ikki"
+
 
 
 
