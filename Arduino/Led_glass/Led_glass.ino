@@ -84,13 +84,20 @@ VectorFloat gravity;    // [x, y, z]            gravity vector
 float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
-
+//LED用
+struct LEDFlag{
+  int color = 0;
+int light_time = 1000; //光るループ回数
+int now_time = 0; //毎ループインクリメントしていく
+}led_rainbow;
+bool ledPatterns[10] = {true, false, false, false, false, false, false, false, false, false };
+int nowState = 5;
 
 
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.setTimeout(300);
   Wire.begin();
   Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
@@ -216,6 +223,7 @@ void loop() {
     }
   }*/
 
+  ledPatternCheck();
   //////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
@@ -283,6 +291,62 @@ void check_commands(String S_input) {
   }
 }
 
+void ledPatternCheck(){
+  if(ledPatterns[0]){
+    //red 0,255,0
+    ledfalse(0);
+    pika_red();
+  }else if(ledPatterns[1]){
+    //green 255,0,0
+    ledfalse(1);
+    pika_green();
+  }else if(ledPatterns[2]){
+    //blue 0,0,255
+    ledfalse(2);
+    pika_blue();
+  }else if(ledPatterns[3]){
+    //purple 0,142,204
+    ledfalse(3);
+    pika_purple();
+  }else if(ledPatterns[4]){
+    //yellow 255 255 0
+    ledfalse(4);
+    pika_yellow();
+  }else if(ledPatterns[5]){
+    //pink 143 239 15
+    ledfalse(5);
+    pika_pink();
+  }else if(ledPatterns[6]){
+    //orange 183 255 76
+    ledfalse(6);
+    pika_orange();
+  }else if(ledPatterns[7]){
+    //light blue 135 25 22
+    ledfalse(7);
+    pika_light_blue();
+  }else if(ledPatterns[8]){
+    //rainbow
+    ledfalse(8);
+    pika_rainbow();
+  }else if(ledPatterns[9]){
+    //
+    ledfalse(9);
+  }else{
+  }
+}
+
+void ledfalse(int index){
+  //indexで指定したもの意外をすべてfalseにする
+  int i=0;
+  for(i=0; i<10; i++){
+    if(i == index){
+      ledPatterns[i] = true;
+    }else{
+      ledPatterns[i] = false;
+    }
+  }
+}
+
 void write_data_to_rom(String String_data) {
   byte Byte_data[30];
   String_data.getBytes(Byte_data, 30);
@@ -324,49 +388,46 @@ void pika_blue() {
   strip.show();
 }
 
-void pika_rainbow() {
-  uint16_t i, j;
-
-  for (j = 0; j < 256; j++) {
-    for (i = 0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel((i + j) & 255));
-    }
-    strip.show();
-    delay(wait);
+void pika_purple(){
+  int i;
+  for(i=0; i<strip.numPixels(); i++){
+    strip.setPixelColor(i, strip.Color(0,142,204));
   }
+  strip.show();
 }
 
-void pika_rainbow2() {
-  int i, j;
-
-  for (j = 0; j < 256; j++) {
-    for (i = 0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel((i + j) & 255));
-    }
-    strip.show();
-    delay(wait);
+void pika_yellow(){
+  int i;
+  for(i=0; i<strip.numPixels(); i++){
+    strip.setPixelColor(i, strip.Color(255,255,0));
   }
+  strip.show();
 }
 
-void shu_red() {
-  for (int i = 0; i < strip.numPixels() + shu_tail + 1; i++) {
-    if (i >= strip.numPixels()) {
-      //先頭が全体のLED数の先を行く時
-      strip.setPixelColor(i - (shu_tail + 1), strip.Color(0, 0, 0));
-      strip.show();
-    } else {
-      strip.setPixelColor(i, strip.Color(0, 255, 0));
-      strip.show();
-      if (i < shu_tail + 1) {
-        //何もせず
-      } else {
-        strip.setPixelColor(i - (shu_tail + 1), strip.Color(0, 0, 0));
-        strip.show();
-      }
-    }
-    delay(shu_wait);
+void pika_pink(){
+  int i;
+  for(i=0; i<strip.numPixels(); i++){
+    strip.setPixelColor(i, strip.Color(143, 239, 15));
   }
+  strip.show();
 }
+
+void pika_orange(){
+  int i;
+  for(i=0; i<strip.numPixels(); i++){
+    strip.setPixelColor(i, strip.Color(183,255,76));
+  }
+  strip.show();
+}
+
+void pika_light_blue(){
+  int i;
+  for(i=0; i<strip.numPixels(); i++){
+    strip.setPixelColor(i, strip.Color(135,25,22));
+  }
+  strip.show();
+}
+
 
 
 void ziwaziwa() {
@@ -388,14 +449,28 @@ void no_light() {
 uint32_t Wheel(byte WheelPos) {
   WheelPos = 255 - WheelPos;
   if (WheelPos < 85) {
-    return strip.Color(0, 255 - WheelPos * 3, WheelPos * 3, 0);
+    return strip.Color(0, 255 - WheelPos * 3, WheelPos * 3);
   }
   if (WheelPos < 170) {
     WheelPos -= 85;
-    return strip.Color(WheelPos * 3, 0, 255 - WheelPos * 3, 0);
+    return strip.Color(WheelPos * 3, 0, 255 - WheelPos * 3);
   }
   WheelPos -= 170;
-  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0, 0);
+  return strip.Color(255 - WheelPos * 3, WheelPos * 3,0);
+}
+
+void pika_rainbow(){
+  int i;
+  if(led_rainbow.now_time > led_rainbow.light_time){
+    led_rainbow.now_time = 0;
+    led_rainbow.color++;
+    for(i=0; i<strip.numPixels(); i++){
+      strip.setPixelColor(i, Wheel(led_rainbow.color & 255));
+    }
+    strip.show();
+  }else{
+    led_rainbow.now_time++;
+  }
 }
 
 void read_realaccel_form_mpu6050(void) {
