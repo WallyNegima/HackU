@@ -90,8 +90,17 @@ struct LEDFlag{
 int light_time = 1000; //光るループ回数
 int now_time = 0; //毎ループインクリメントしていく
 }led_rainbow;
-bool ledPatterns[10] = {true, false, false, false, false, false, false, false, false, false };
+struct LEDSlide{
+  int front = 0;
+  int tail = 3;
+  int now_color = 0;
+  int light_time = 10;
+  int now_time = 0;
+}led_slide;
+bool ledPatterns[11] = {false, false, false, false, false, false, false, false, false, false, true };
+bool slide = false;
 int nowState = 5;
+int nowcolor;
 
 
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
@@ -314,7 +323,12 @@ void check_commands(String S_input) {
   else if (S_input.equals("ledoff")) {
     no_light();
     Serial.println("Led off");
-    
+    ledfalse(9);
+  }
+  else if (S_input.equals("slide")) {
+    pika_slide();
+    Serial.println("slide!");
+    ledfalse(10);
   }
   else if (S_input.equals("ikki")) {
     Serial.println("ikki_mode");
@@ -366,6 +380,10 @@ void ledPatternCheck(){
     //ledoff
     no_light();
     ledfalse(9);
+  }else if(ledPatterns[10]){
+    //ledoff
+    pika_slide();
+    ledfalse(10);
   }else{
   }
 }
@@ -402,63 +420,71 @@ String read_data_from_rom(void) {
 }
 
 void pika_red() {
+  nowcolor = strip.Color(0, 255, 0);
   for (int i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, strip.Color(0, 255, 0));
+    strip.setPixelColor(i,nowcolor);
     strip.show();
   }
 }
 
 void pika_green() {
+  nowcolor = strip.Color(255,0, 0);
   for (int i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, strip.Color(255, 0, 0));
+    strip.setPixelColor(i, nowcolor);
     strip.show();
   }
 }
 
 void pika_blue() {
   int i;
+  nowcolor = strip.Color(0,0,255);
   for (i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, strip.Color(0, 0, 255));
+    strip.setPixelColor(i, nowcolor);
   }
   strip.show();
 }
 
 void pika_purple(){
   int i;
+  nowcolor = strip.Color(0,142,204);
   for(i=0; i<strip.numPixels(); i++){
-    strip.setPixelColor(i, strip.Color(0,142,204));
+    strip.setPixelColor(i, nowcolor);
   }
   strip.show();
 }
 
 void pika_yellow(){
   int i;
+  nowcolor = strip.Color(255,255,0);
   for(i=0; i<strip.numPixels(); i++){
-    strip.setPixelColor(i, strip.Color(255,255,0));
+    strip.setPixelColor(i, nowcolor);
   }
   strip.show();
 }
 
 void pika_pink(){
   int i;
+  nowcolor = strip.Color(143,239,15);
   for(i=0; i<strip.numPixels(); i++){
-    strip.setPixelColor(i, strip.Color(143, 239, 15));
+    strip.setPixelColor(i, nowcolor);
   }
   strip.show();
 }
 
 void pika_orange(){
   int i;
+  nowcolor = strip.Color(183,255,76);
   for(i=0; i<strip.numPixels(); i++){
-    strip.setPixelColor(i, strip.Color(183,255,76));
+    strip.setPixelColor(i, nowcolor);
   }
   strip.show();
 }
 
 void pika_light_blue(){
   int i;
+  nowcolor = strip.Color(135,25,22);
   for(i=0; i<strip.numPixels(); i++){
-    strip.setPixelColor(i, strip.Color(135,25,22));
+    strip.setPixelColor(i, nowcolor);
   }
   strip.show();
 }
@@ -499,12 +525,32 @@ void pika_rainbow(){
   if(led_rainbow.now_time > led_rainbow.light_time){
     led_rainbow.now_time = 0;
     led_rainbow.color++;
+    nowcolor = Wheel(led_rainbow.color & 255);
     for(i=0; i<strip.numPixels(); i++){
-      strip.setPixelColor(i, Wheel(led_rainbow.color & 255));
+      strip.setPixelColor(i, nowcolor);
     }
     strip.show();
   }else{
     led_rainbow.now_time++;
+  }
+}
+
+void pika_slide(){
+  int i=0;
+  led_slide.now_color = nowcolor;
+  if(led_slide.now_time > led_slide.light_time){
+    led_slide.now_time = 0;
+    led_slide.front++;
+    if(led_slide.front >= NUM_LEDS){
+      led_slide.front = 0;
+    }
+    for(i=0; i<led_slide.tail; i++){
+      strip.setPixelColor(led_slide.front-i, nowcolor);
+    }
+    strip.setPixelColor(led_slide.front - led_slide.tail, strip.Color(0,0,0));
+    strip.show();
+  }else{
+    led_slide.now_time++;
   }
 }
 
