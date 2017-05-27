@@ -469,6 +469,8 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         kanpaiButton.setOnClickListener(new View.OnClickListener(){
             int old_color;
             int count;
+            int temp_color;
+
             ChildEventListener ce;
             @Override
             public void onClick(View v){
@@ -480,9 +482,10 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 //                        追加された値の取得
                         String temp = dataSnapshot.getKey();
-                        if(!temp.equals(user.userKey)){
+                        count ++;
+                        if(!temp.equals(user.userKey) && count < 3){
 //                            自分以外のkeyの値を書き換え
-                            myRef.child("now_color").child(temp).setValue(user.now_color);
+                            myRef.child("now_color").child(temp).setValue(old_color);
 //                                    .runTransaction(new Transaction.Handler() {
 //                                @Override
 //                                public Transaction.Result doTransaction(MutableData mutableData) {
@@ -535,20 +538,20 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             @Override
                             public Transaction.Result doTransaction(MutableData mutableData) {
 //                                値取得
-                                count = mutableData.getValue(int.class);
+                                temp_color = mutableData.getValue(int.class);
+                                myRef.child("now_color").removeEventListener(ce);
                                 return Transaction.success(mutableData);
                             }
                             @Override
                             public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
                                 myRef.child("now_color").child(user.userKey).removeValue();
-                                user.now_color = count;
+                                user.now_color = temp_color;
                                 myRef.child(user.userKey).child("now_color").setValue(user.now_color);
                                 if (b){
                                     Log.d("kanpai::560",""+dataSnapshot);
                                 }else{
                                     Log.d("kanpai::562",""+databaseError);
                                 }
-                                myRef.child("now_color").removeEventListener(ce);
                             }
                         });
                     }
@@ -565,7 +568,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             if(btAdapter.isDiscovering()){
                 btAdapter.cancelDiscovery();
             }
-            btReceiver.unregister();
+//            btReceiver.unregister();
         }
 
 
