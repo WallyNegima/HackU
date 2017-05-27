@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.icu.text.LocaleDisplayNames;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -156,13 +157,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         writeButton.setOnClickListener(this);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mStatusTextView.setText("SearchDevice");
-        Set<BluetoothDevice> devices = mAdapter.getBondedDevices();
-        for (BluetoothDevice device : devices) {
-            if (device.getName().equals(DEVICE_NAME)) {
-                mStatusTextView.setText("find:" + device.getName());
-                mDevice = device;
-            }
-        }
 
         //音声認識
         txvAction = (TextView) findViewById(R.id.amin_txvAction);
@@ -407,6 +401,58 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 }
             }
         });
+
+//            ██╗  ██╗ █████╗ ███╗   ██╗██████╗  █████╗ ██╗
+//            ██║ ██╔╝██╔══██╗████╗  ██║██╔══██╗██╔══██╗██║
+//            █████╔╝ ███████║██╔██╗ ██║██████╔╝███████║██║
+//            ██╔═██╗ ██╔══██║██║╚██╗██║██╔═══╝ ██╔══██║██║
+//            ██║  ██╗██║  ██║██║ ╚████║██║     ██║  ██║██║
+//            ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝     ╚═╝  ╚═╝╚═╝
+
+        //テスト
+        //乾杯
+        kanpaiButton.setOnClickListener(new View.OnClickListener(){
+            int old_color;
+            int count;
+            @Override
+            public void onClick(View v){
+                old_color = user.now_color;
+                user.kanpai_gotNewColor = false;
+                count = 0;
+                myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData mutableData) {
+                        count = mutableData.getValue(int.class);
+                        mutableData.setValue(count + user.now_color);
+                        return Transaction.success(mutableData);
+                    }
+
+                    @Override
+                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                    }
+                });
+
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        myRef.child("now_color").runTransaction(new Transaction.Handler() {
+                            @Override
+                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                count = mutableData.getValue(int.class);
+                                mutableData.setValue(count - old_color);
+                                return Transaction.success(mutableData);
+                            }
+                            @Override
+                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+                                myRef.child(user.userKey).child("now_color").setValue(count-old_color);
+                            }
+                        });
+                    }
+                },500);
+            }
+     });
+
     }
         @Override
         public void onDestroy(){
@@ -609,76 +655,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 }
             }
 
-
-
-        //テスト
-        //乾杯
-        kanpaiButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                user.kanpai_gotNewColor = false;
-                myRef.child("now_color").runTransaction(new Transaction.Handler() {
-                    @Override
-                    public Transaction.Result doTransaction(MutableData mutableData) {
-                        if(mutableData.getValue() == null || mutableData.getValue(int.class) == 0){
-                            mutableData.setValue(user.now_color);
-                            myRef.child("now_color").addListenerForSingleValueEvent(
-                                    new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            // Get user value
-                                            if(dataSnapshot.getKey().equals("now_color")){
-                                                if(dataSnapshot.getValue(int.class) != 0){
-                                                    user.now_color = dataSnapshot.getValue(int.class);
-                                                    test_tv.setText(user.now_color + "!");
-                                                    user.kanpai_gotNewColor = true;
-                                                }
-                                            }
-                                        }
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
-                                            Log.w("kanpai", "getUser:onCancelled", databaseError.toException());
-                                        }
-                                    });
-                            //誰も乾杯してくれなかった時
-                            HandlerThread handlerThread = new HandlerThread("foo");
-                            handlerThread.start();
-                            new Handler(handlerThread.getLooper()).postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    // ここにn秒後に実行したい処理
-                                    if(!user.kanpai_gotNewColor){
-                                        myRef.child("now_color").runTransaction(new Transaction.Handler() {
-                                            @Override
-                                            public Transaction.Result doTransaction(MutableData mutableData) {
-                                                mutableData.setValue(0);
-                                                test_tv.setText("誰も乾杯せず");
-                                                return Transaction.success(mutableData);
-                                            }
-                                            @Override
-                                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                                            }
-                                        });
-                                    }
-
-                                }
-                            }, 200);
-
-                        }else{
-                            int temp = user.now_color;
-                            user.now_color = mutableData.getValue(int.class);
-                            myRef.child("now_color").setValue(temp);
-                            test_tv.setText(user.now_color + "!");
-                            Log.d("kanpai", "add now_color!");
-                        }
-                        return Transaction.success(mutableData);
-                    }
-                    @Override
-                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                    }
-                });
-            }
-        });
     }
 
     private void registUserID(final DatabaseReference databaseReference, final User user){
