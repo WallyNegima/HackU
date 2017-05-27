@@ -16,23 +16,27 @@ import twitter4j.TwitterException;
  */
 
 public class Tweet {
-    private Context context;
     private Twitter mTwitter;
+    private Context context;
     Date dTime = new Date();
+    SharedPreferences preferences;
+    String NKANAPI = "numberOfKanapi";
+
 
     public Tweet(Context c, Twitter t){
         //コンストラクタ
         this.context = c;
         this.mTwitter = t;
+        preferences = c.getSharedPreferences(NKANAPI, Context.MODE_PRIVATE);
+
     }
 
     public void tweet() {
-
         AsyncTask<String, Void, Boolean> task = new AsyncTask<String, Void, Boolean>() {
             @Override
             protected Boolean doInBackground(String... params) {
                 try {
-                    mTwitter.updateStatus("俺はパリピになる！！！！！！！！！！@ " + dTime.toString());
+                    mTwitter.updateStatus("人生" + preferences.getInt(NKANAPI, 0) + "度目の乾杯！！！！ @ " + dTime.toString());
                     return true;
                 } catch (TwitterException e) {
                     e.printStackTrace();
@@ -50,10 +54,15 @@ public class Tweet {
                 }
             }
         };
-
+        task.execute("aa");
     }
 
     private void showToast(String text) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
     }
+
+
+
+
+
 }

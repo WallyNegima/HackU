@@ -75,14 +75,14 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     List<BluetoothDevice> devices1;
     ArrayList<String> itemArray = new ArrayList<String>();
     final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
+    SharedPreferences preferences;
 
     /* twitter */
     private String mCallbackURL;
     private Twitter mTwitter;
     private RequestToken mRequestToken;
     public Tweet tweet;
-    Date dTime = new Date();
-
+    String NKANAPI = "numberOfKanapi";
 
     /* tag */
     private static final String TAG = "BluetoothSample";
@@ -108,36 +108,50 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     /* Threadの状態を表す */
     private boolean isRunning;
 
-    /** 接続ボタン. */
+    /**
+     * 接続ボタン.
+     */
     private Button connectButton;
 
-    /** 書込みボタン. */
+    /**
+     * 書込みボタン.
+     */
     private Button writeButton;
 
-    /** ステータス. */
+    /**
+     * ステータス.
+     */
     private TextView mStatusTextView;
 
-    /** Bluetoothから受信した値. */
+    /**
+     * Bluetoothから受信した値.
+     */
     private TextView mInputTextView;
 
-    /** Action(ステータス表示). */
+    /**
+     * Action(ステータス表示).
+     */
     private static final int VIEW_STATUS = 0;
 
-    /** Action(取得文字列). */
+    /**
+     * Action(取得文字列).
+     */
     private static final int VIEW_INPUT = 1;
 
-    /** Connect確認用フラグ */
+    /**
+     * Connect確認用フラグ
+     */
     private boolean connectFlg = false;
-    /** BluetoothのOutputStream. */
+    /**
+     * BluetoothのOutputStream.
+     */
     OutputStream mmOutputStream = null;
 
     /* 音声認識で使うよーんwwwwww  */
     private TextView txvAction;
     private TextView txvRec;
     private static final int REQUEST_CODE = 0;
-    public Context context;
     private String result_voce;
-
 
 
     @Override
@@ -148,18 +162,18 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         button = (Button) findViewById(R.id.button);
         roomCreateButton = (Button) findViewById(R.id.userCreate);
         kanpaiButton = (Button) findViewById(R.id.kanpai);
-        btListButton = (Button)findViewById(R.id.btdevice);
-        twitterButton = (Button)findViewById(R.id.twitter);
-        tweetButton = (Button)findViewById(R.id.tweet);
+        btListButton = (Button) findViewById(R.id.btdevice);
+        twitterButton = (Button) findViewById(R.id.twitter);
+        tweetButton = (Button) findViewById(R.id.tweet);
         editText = (EditText) findViewById(R.id.edittext);
         userName = (EditText) findViewById(R.id.userName);
         roomNumber = (EditText) findViewById(R.id.roomNumber);
         test_tv = (TextView) findViewById(R.id.test_tv);
-        btdevicename = (TextView)findViewById(R.id.btdevicename);
+        btdevicename = (TextView) findViewById(R.id.btdevicename);
 
         user = new User();
         devices1 = new ArrayList<>();
-
+        preferences = act.getSharedPreferences(NKANAPI, Context.MODE_PRIVATE);
 
 
         button.setOnClickListener(new View.OnClickListener() {
@@ -225,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         /*---     ペアリング済みBT機器から接続する機器を選ぶボタン！   ----*/
         //デバイスを検索する
         btAdapter = BluetoothAdapter.getDefaultAdapter();
-        btListButton.setOnClickListener(new View.OnClickListener(){
+        btListButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 itemArray.clear();
@@ -235,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     itemArray.add(device.getName());
                     devices1.add(device);
                 }
-                String[] items = (String[])itemArray.toArray(new String[0]);
+                String[] items = (String[]) itemArray.toArray(new String[0]);
                 int defaultItem = 0; // デフォルトでチェックされているアイテム
                 checkedItems.add(defaultItem);
                 new AlertDialog.Builder(act)
@@ -264,14 +278,17 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
         /*---    twitter認証！ ---*/
         mCallbackURL = getString(R.string.twitter_callback_url);
-        mTwitter = TwitterUtils.getTwitterInstance(act);
+        mTwitter = TwitterUtils.getTwitterInstance(this);
         tweet = new Tweet(this, mTwitter);
         twitterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!TwitterUtils.hasAccessToken(act)) {
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putInt(NKANAPI, 1);
+                    editor.apply();
                     startAuthorize();
-                }else{
+                } else {
                     showToast("もう認証されてるよ");
                 }
             }
@@ -280,10 +297,12 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         tweetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tweet();
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putInt(NKANAPI, preferences.getInt(NKANAPI, 0)+1);
+                editor.apply();
+                tweet.tweet();
             }
         });
-
 
 
         //roomを作成する
@@ -489,232 +508,235 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             }
         });
     }
-        @Override
-        public void onDestroy(){
-            super.onDestroy();
-            Log.v("LifeCycle", "onDestroy");
-            if(btAdapter.isDiscovering()){
-                btAdapter.cancelDiscovery();
-            }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.v("LifeCycle", "onDestroy");
+        if (btAdapter.isDiscovering()) {
+            btAdapter.cancelDiscovery();
         }
+    }
 
 
-        @Override
-        protected void onPause() {
-            super.onPause();
+    @Override
+    protected void onPause() {
+        super.onPause();
 
-            isRunning = false;
-            try {
-                mSocket.close();
-            } catch (Exception e) {}
+        isRunning = false;
+        try {
+            mSocket.close();
+        } catch (Exception e) {
         }
+    }
 
-        @Override
-        public void run() {
-            InputStream mmlnStream = null;
-            Message valueMsg = new Message();
+    @Override
+    public void run() {
+        InputStream mmlnStream = null;
+        Message valueMsg = new Message();
+        valueMsg.what = VIEW_STATUS;
+        valueMsg.obj = "connecting...";
+        mHandler.sendMessage(valueMsg);
+
+
+        try {
+
+            // 取得したデバイス名を使ってBlueToothでSocket通信
+            mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+            mSocket.connect();
+            mmlnStream = mSocket.getInputStream();
+            mmOutputStream = mSocket.getOutputStream();
+
+            //InputStreamのバッファを格納
+            byte[] buffer = new byte[1024];
+
+            //習得したバッファのサイズを格納
+            int bytes;
+            valueMsg = new Message();
             valueMsg.what = VIEW_STATUS;
-            valueMsg.obj = "connecting...";
+            valueMsg.obj = "connected...";
             mHandler.sendMessage(valueMsg);
 
+            connectFlg = true;
+
+            while (isRunning) {
+                //InputStream の読み込み
+                bytes = mmlnStream.read(buffer);
+                Log.i(TAG, "bytes=" + bytes);
+
+                //String型に変換
+                String readMsg = new String(buffer, 0, bytes);
+
+                //null以外なら表示
+                if (readMsg.trim() != null && !readMsg.trim().equals("")) {
+                    Log.i(TAG, "value=" + readMsg.trim());
+
+                    valueMsg = new Message();
+                    valueMsg.what = VIEW_INPUT;
+                    valueMsg.obj = readMsg;//
+                    mHandler.sendMessage(valueMsg);
+                } else {
+                    Log.i(TAG, "value = nodata");
+                }
+            }
+        } catch (Exception e) {
+            valueMsg = new Message();
+            valueMsg.what = VIEW_STATUS;
+            valueMsg.obj = "Error1:" + e;
+            mHandler.sendMessage(valueMsg);
 
             try {
+                mSocket.close();
+            } catch (Exception ee) {
+            }
+            isRunning = false;
+            connectFlg = false;
+        }
+    }
 
-                // 取得したデバイス名を使ってBlueToothでSocket通信
-                mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                mSocket.connect();
-                mmlnStream = mSocket.getInputStream();
-                mmOutputStream = mSocket.getOutputStream();
+    @Override
+    public void onClick(View v) {
+        if (v.equals(connectButton)) {
+            //接続されていない場合のみ//
+            if (!connectFlg) {
+                mStatusTextView.setText("try connect");
 
-                //InputStreamのバッファを格納
-                byte[] buffer = new byte[1024];
+                mThread = new Thread(this);
+                isRunning = true;
+                mThread.start();
 
-                //習得したバッファのサイズを格納
-                int bytes;
-                valueMsg = new Message();
-                valueMsg.what = VIEW_STATUS;
-                valueMsg.obj = "connected...";
-                mHandler.sendMessage(valueMsg);
-
-                connectFlg = true;
-
-                while(isRunning) {
-                    //InputStream の読み込み
-                    bytes = mmlnStream.read(buffer);
-                    Log.i(TAG, "bytes=" + bytes);
-
-                    //String型に変換
-                    String readMsg = new String(buffer, 0, bytes);
-
-                    //null以外なら表示
-                    if(readMsg.trim() != null && !readMsg.trim().equals("")) {
-                        Log.i(TAG, "value=" + readMsg.trim());
-
-                        valueMsg = new Message();
-                        valueMsg.what = VIEW_INPUT;
-                        valueMsg.obj = readMsg;//
-                        mHandler.sendMessage(valueMsg);
-                    } else {
-                        Log.i(TAG, "value = nodata");
-                    }
-                }
-            } catch (Exception e) {
-                valueMsg = new Message();
-                valueMsg.what = VIEW_STATUS;
-                valueMsg.obj = "Error1:" + e;
-                mHandler.sendMessage(valueMsg);
-
+            }
+        } else if (v.equals(writeButton)) {
+            //接続中のみ書き込みを行う//
+            if (connectFlg) {
                 try {
-                    mSocket.close();
-                } catch (Exception ee) {}
-                isRunning = false;
-                connectFlg = false;
+                    mmOutputStream.write("L".getBytes());
+                    //---------------書き込み
+                    mmOutputStream.write("2".getBytes());
+                    mStatusTextView.setText("Write");
+                } catch (IOException e) {
+                    Message valueMsg = new Message();
+                    valueMsg.what = VIEW_STATUS;
+                    valueMsg.obj = "Error3:" + e;
+                    mHandler.sendMessage(valueMsg);
+                }
+            } else {
+                mStatusTextView.setText("Please push the connect button");
             }
         }
+    }
 
+    Handler mHandler = new Handler() {
         @Override
-        public void onClick(View v) {
-            if(v.equals(connectButton)) {
-                //接続されていない場合のみ//
-                if(!connectFlg) {
-                    mStatusTextView.setText("try connect");
-
-                    mThread = new Thread(this);
-                    isRunning = true;
-                    mThread.start();
-
-                }
-            } else if(v.equals(writeButton)) {
-                //接続中のみ書き込みを行う//
-                if(connectFlg) {
-                    try {
-                        mmOutputStream.write("L".getBytes());
-                        //---------------書き込み
-                        mmOutputStream.write("2".getBytes());
-                        mStatusTextView.setText("Write");
-                    } catch (IOException e) {
-                        Message valueMsg = new Message();
-                        valueMsg.what = VIEW_STATUS;
-                        valueMsg.obj = "Error3:" + e;
-                        mHandler.sendMessage(valueMsg);
-                    }
-                } else {
-                    mStatusTextView.setText("Please push the connect button");
-                }
+        public void handleMessage(Message msg) {
+            int action = msg.what;
+            String msgStr = (String) msg.obj;
+            if (action == VIEW_INPUT) {
+                mInputTextView.setText(msgStr);
+            } else if (action == VIEW_STATUS) {
+                mStatusTextView.setText(msgStr);
             }
         }
-
-        Handler mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                int action = msg.what;
-                String msgStr = (String)msg.obj;
-                if(action == VIEW_INPUT) {
-                    mInputTextView.setText(msgStr);
-                } else if(action == VIEW_STATUS) {
-                    mStatusTextView.setText(msgStr);
-                }
-            }
-        };
+    };
 
 
     /*---       startActivityForResultで起動したアクティビティが終了した時に呼び出される関数   ---*/
-        @Override
-        protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-            // 音声認識結果の時
-            if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-                // 結果文字列リストを取得
-                ArrayList<String> results = data.getStringArrayListExtra(
-                        RecognizerIntent.EXTRA_RESULTS);
-                if (results.size() > 0) {
-                    // 認識結果候補で一番有力なものを表示
-                    txvRec.setText(results.get(0));
-                    // checkCharacterに値を渡す
-                    //checkResult.resultRec = results.get(0);
-                    result_voce = results.get(0);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // 音声認識結果の時
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            // 結果文字列リストを取得
+            ArrayList<String> results = data.getStringArrayListExtra(
+                    RecognizerIntent.EXTRA_RESULTS);
+            if (results.size() > 0) {
+                // 認識結果候補で一番有力なものを表示
+                txvRec.setText(results.get(0));
+                // checkCharacterに値を渡す
+                //checkResult.resultRec = results.get(0);
+                result_voce = results.get(0);
                 /*
                 /*---    この下に結果処理を一応描いてみる   ---*/
-                    switch (result_voce) {
+                switch (result_voce) {
                 /*---   乾杯   ---*/
-                        case "乾杯します":
-                            Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
-                            break;
-                        case "乾杯":
-                            Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
+                    case "乾杯します":
+                        Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
+                        break;
+                    case "乾杯":
+                        Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
 
-                            try{
-                                // "L"は光らせる
-                                mmOutputStream.write("L".getBytes());
-                                mStatusTextView.setText("L");
-                            } catch (IOException e) {
-                                Message valueMsg = new Message();
-                                valueMsg.what = VIEW_STATUS;
-                                valueMsg.obj = "Error3:" + e;
-                                mHandler.sendMessage(valueMsg);
-                            }
-                            break;
+                        try {
+                            // "L"は光らせる
+                            mmOutputStream.write("L".getBytes());
+                            mStatusTextView.setText("L");
+                        } catch (IOException e) {
+                            Message valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "Error3:" + e;
+                            mHandler.sendMessage(valueMsg);
+                        }
+                        break;
                 /*---   ルーレット   */
-                        case "ルーレットモード":
-                            Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
-                            break;
-                        case "ルーレット":
-                            Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
-                            break;
+                    case "ルーレットモード":
+                        Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+                        break;
+                    case "ルーレット":
+                        Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+                        break;
                 /*--   司会者   ---*/
-                        case "司会者になりました":
-                            Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
-                            break;
-                        case "司会者":
-                            Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
-                            break;
+                    case "司会者になりました":
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
+                        break;
+                    case "司会者":
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
+                        break;
                 /*---   一気飲み   ---*/
-                        case "一気飲み":
-                            Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
-                            break;
-                        case "一気飲みします":
-                            Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
-                            break;
-                        case "LEDオン":
-                            try{
-                                mmOutputStream.write("L".getBytes());
-                                mStatusTextView.setText("L");
-                            } catch (IOException e) {
-                                Message valueMsg = new Message();
-                                valueMsg.what = VIEW_STATUS;
-                                valueMsg.obj = "Error3:" + e;
-                                mHandler.sendMessage(valueMsg);
-                            }
-                            break;
-                    }
+                    case "一気飲み":
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        break;
+                    case "一気飲みします":
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        break;
+                    case "LEDオン":
+                        try {
+                            mmOutputStream.write("L".getBytes());
+                            mStatusTextView.setText("L");
+                        } catch (IOException e) {
+                            Message valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "Error3:" + e;
+                            mHandler.sendMessage(valueMsg);
+                        }
+                        break;
                 }
             }
-
+        }
 
 
         //テスト
         //乾杯
-        kanpaiButton.setOnClickListener(new View.OnClickListener(){
+        kanpaiButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
                 user.kanpai_gotNewColor = false;
                 myRef.child("now_color").runTransaction(new Transaction.Handler() {
                     @Override
                     public Transaction.Result doTransaction(MutableData mutableData) {
-                        if(mutableData.getValue() == null || mutableData.getValue(int.class) == 0){
+                        if (mutableData.getValue() == null || mutableData.getValue(int.class) == 0) {
                             mutableData.setValue(user.now_color);
                             myRef.child("now_color").addListenerForSingleValueEvent(
                                     new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
                                             // Get user value
-                                            if(dataSnapshot.getKey().equals("now_color")){
-                                                if(dataSnapshot.getValue(int.class) != 0){
+                                            if (dataSnapshot.getKey().equals("now_color")) {
+                                                if (dataSnapshot.getValue(int.class) != 0) {
                                                     user.now_color = dataSnapshot.getValue(int.class);
                                                     test_tv.setText(user.now_color + "!");
                                                     user.kanpai_gotNewColor = true;
                                                 }
                                             }
                                         }
+
                                         @Override
                                         public void onCancelled(DatabaseError databaseError) {
                                             Log.w("kanpai", "getUser:onCancelled", databaseError.toException());
@@ -727,7 +749,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                 @Override
                                 public void run() {
                                     // ここにn秒後に実行したい処理
-                                    if(!user.kanpai_gotNewColor){
+                                    if (!user.kanpai_gotNewColor) {
                                         myRef.child("now_color").runTransaction(new Transaction.Handler() {
                                             @Override
                                             public Transaction.Result doTransaction(MutableData mutableData) {
@@ -735,6 +757,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                                 test_tv.setText("誰も乾杯せず");
                                                 return Transaction.success(mutableData);
                                             }
+
                                             @Override
                                             public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
                                             }
@@ -744,7 +767,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                 }
                             }, 200);
 
-                        }else{
+                        } else {
                             int temp = user.now_color;
                             user.now_color = mutableData.getValue(int.class);
                             myRef.child("now_color").setValue(temp);
@@ -753,6 +776,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         }
                         return Transaction.success(mutableData);
                     }
+
                     @Override
                     public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
                     }
@@ -761,17 +785,17 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         });
     }
 
-    private void registUserID(final DatabaseReference databaseReference, final User user){
+    private void registUserID(final DatabaseReference databaseReference, final User user) {
         //部屋に入る時，部屋の人数に合わせてuserIdを決める
         databaseReference.child("numberOfUser").runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
-                if(mutableData.getValue() == null){
+                if (mutableData.getValue() == null) {
                     mutableData.setValue(1);
                     user.userId = 1;
                     user.now_color = user.userId;
-                }else{
-                    int id = mutableData.getValue(int.class)+1;
+                } else {
+                    int id = mutableData.getValue(int.class) + 1;
                     mutableData.setValue(id);
                     user.userId = id;
                     user.now_color = user.userId;
@@ -779,7 +803,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 databaseReference.child(user.userKey).child("userId").setValue(user.userId);
                 myRef.child(key).child("userName").setValue(user.userName);
                 user.nextUserId = 1;
-                Log.d("nextUserID","at 297:: "+user.nextUserId);
+                Log.d("nextUserID", "at 297:: " + user.nextUserId);
                 return Transaction.success(mutableData);
             }
 
@@ -789,41 +813,35 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         });
     }
 
+
+
     /**
      * OAuth認証（厳密には認可）を開始します。
-     *
      */
     private void startAuthorize() {
-        if (!TwitterUtils.hasAccessToken(act)) {
-            AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
-                @Override
-                protected String doInBackground(Void... params) {
-                    try {
-                        mRequestToken = mTwitter.getOAuthRequestToken(mCallbackURL);
-                        return mRequestToken.getAuthorizationURL();
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
+        AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                try {
+                    mRequestToken = mTwitter.getOAuthRequestToken(mCallbackURL);
+                    return mRequestToken.getAuthorizationURL();
+                } catch (TwitterException e) {
+                    e.printStackTrace();
                 }
+                return null;
+            }
 
-                @Override
-                protected void onPostExecute(String url) {
-                    if (url != null) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                        startActivity(intent);
-                    } else {
-                        // 失敗。。。
-                    }
+            @Override
+            protected void onPostExecute(String url) {
+                if (url != null) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(intent);
+                } else {
+                    // 失敗。。。
                 }
-            };
-            task.execute();
-        }else{
-            showToast("もう認証されてるよ");
-            mTwitter = TwitterUtils.getTwitterInstance(act);
-        }
-
-
+            }
+        };
+        task.execute();
     }
 
     @Override
@@ -839,7 +857,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             @Override
             protected AccessToken doInBackground(String... params) {
                 try {
-                    Log.d("callback", mRequestToken.getToken() );
                     return mTwitter.getOAuthAccessToken(mRequestToken, params[0]);
                 } catch (TwitterException e) {
                     e.printStackTrace();
@@ -866,34 +883,11 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         TwitterUtils.storeAccessToken(this, accessToken);
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
-        finish();
-    }
-    public void tweet() {
-        AsyncTask<String, Void, Boolean> task = new AsyncTask<String, Void, Boolean>() {
-            @Override
-            protected Boolean doInBackground(String... params) {
-                try {
-                    mTwitter.updateStatus("俺はパリピになる！！！！！！！！！！@ ");
-                    return true;
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(Boolean result) {
-                if (result) {
-                    showToast("ツイートが完了しました！");
-                    //finish();
-                } else {
-                    showToast("ツイートに失敗しました。。。");
-                }
-            }
-        };
+        //finish();
     }
 
     private void showToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 }
+

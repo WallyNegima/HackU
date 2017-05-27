@@ -17,10 +17,10 @@ public class TwitterUtils {
     private static final String TOKEN_SECRET = "token_secret";
     private static final String PREF_NAME = "twitter_access_token";
 
-
     /**
      * Twitterインスタンスを取得します。アクセストークンが保存されていれば自動的にセットします。
      *
+     * @param context
      * @return
      */
     public static Twitter getTwitterInstance(Context context) {
@@ -31,17 +31,9 @@ public class TwitterUtils {
         Twitter twitter = factory.getInstance();
         twitter.setOAuthConsumer(consumerKey, consumerSecret);
 
-
         if (hasAccessToken(context)) {
-            Log.d("get" , "aa");
             twitter.setOAuthAccessToken(loadAccessToken(context));
         }
-        SharedPreferences preferences = context.getSharedPreferences(PREF_NAME,
-                Context.MODE_PRIVATE);
-        String token = preferences.getString(TOKEN, null);
-        String tokenSecret = preferences.getString(TOKEN_SECRET, null);
-        Log.d("tw", token +":"+tokenSecret);
-        Log.d("tw", "access:" + preferences.getString(PREF_NAME, null));
         return twitter;
     }
 
@@ -62,7 +54,6 @@ public class TwitterUtils {
 
     /**
      * アクセストークンをプリファレンスから読み込みます。
-     *
      * @param context
      * @return
      */
@@ -72,9 +63,7 @@ public class TwitterUtils {
         String token = preferences.getString(TOKEN, null);
         String tokenSecret = preferences.getString(TOKEN_SECRET, null);
         if (token != null && tokenSecret != null) {
-            AccessToken at = new AccessToken(token, tokenSecret);
-            Log.d("accestolen", at.toString());
-            return at;
+            return new AccessToken(token, tokenSecret);
         } else {
             return null;
         }
