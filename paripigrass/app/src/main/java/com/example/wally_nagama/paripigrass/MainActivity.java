@@ -320,76 +320,12 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             }
 
 //                            ルーレットON
-                            if (dataSnapshot.getKey().equals("Roulette")) {
-                                Log.d("Roulette", "Added");
-                                if (dataSnapshot.child("light_now").getValue(int.class) == user.userId) {
-//                                    TODO::LEDピカピカ〜
-                                    dataSnapshot.child("color").getValue(int.class);
-                                    test_tv.setText("hfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhf");
-                                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            myRef.child("Roulette").child("light_now").runTransaction(new Transaction.Handler() {
-                                                @Override
-                                                public Transaction.Result doTransaction(MutableData mutableData) {
-                                                    mutableData.setValue(user.nextUserId);
-                                                    return Transaction.success(mutableData);
-                                                }
-
-                                                @Override
-                                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-//                                         TODO   LED消す処理
-                                                    test_tv.setText("");
-                                                }
-                                            });
-                                        }
-                                    }, 100);
-                                }
-                            }
+                            roulette.ichimi(dataSnapshot);
                         }
 
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                            if (dataSnapshot.getKey().equals("Roulette")) {
-                                if (dataSnapshot.child("light_now").getValue(int.class) == user.userId) {
-                                    final int count = dataSnapshot.child("count").getValue(int.class);
-                                    dataSnapshot.child("color").getValue(int.class);
-//                                    TODO::ピカピカ〜
-                                    test_tv.setText("hfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhfhf");
-//                                    countが0やったら終了
-                                    if (count > 0) {
-                                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                myRef.child("Roulette").child("light_now").runTransaction(new Transaction.Handler() {
-                                                    @Override
-                                                    public Transaction.Result doTransaction(MutableData mutableData) {
-                                                        mutableData.setValue(user.nextUserId);
-                                                        return Transaction.success(mutableData);
-                                                    }
-
-                                                    @Override
-                                                    public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-//                                                      TODO   LED消す処理
-                                                        myRef.child("Roulette").child("count").setValue(count - 1);
-                                                        test_tv.setText("");
-                                                    }
-                                                });
-                                            }
-                                        }, 100);
-                                    } else {
-//                                        TODO::LED色変える
-                                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-//                                        Roulette削除
-                                                myRef.child("Roulette").removeValue();
-                                            }
-                                        }, 5000);
-                                    }
-                                }
-                            }
-
+                            roulette.ichimi(dataSnapshot);
                         }
 
                         @Override
@@ -472,7 +408,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     roulette = new Roulette(user,myRef);
                     roomCreateButton.setText("部屋を退出する");
 
-                } else if (user.joined == true) {
+                } else  {
                     //すでに部屋に入っているときの処理
                     //退出する
                     //部屋の人数 numberOfUserをデクリメントして，自分自身のremoveする．
