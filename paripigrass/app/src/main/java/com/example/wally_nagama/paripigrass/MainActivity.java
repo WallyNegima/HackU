@@ -625,6 +625,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
     @Override
     public void run() {
+        Log.d("runnable", "スレッド処理始めたらしい");
         InputStream mmlnStream = null;
         Message valueMsg = new Message();
         valueMsg.what = VIEW_STATUS;
@@ -633,7 +634,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
 
         try {
-
             // 取得したデバイス名を使ってBlueToothでSocket通信
             mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
             mSocket.connect();
