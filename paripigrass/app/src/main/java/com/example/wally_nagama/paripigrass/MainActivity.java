@@ -5,17 +5,22 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.speech.RecognizerIntent;
 import android.support.annotation.CheckResult;
 import android.support.v7.app.AppCompatActivity;
@@ -57,11 +62,16 @@ import twitter4j.auth.RequestToken;
 
 
 public class MainActivity extends AppCompatActivity implements Runnable, View.OnClickListener {
+
+    //-------------
+    LocalService mService;
+    boolean mBound = false;
+
     User user;
     ReConnectBluetooth reConnectBt;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton, kanpaiButton, btListButton, twitterButton, tweetButton;
+    Button button, roomCreateButton, kanpaiButton, btListButton, twitterButton, tweetButton, startService;
     EditText editText, userName, roomNumber, mDirection;
     Context act = this;
     ChildEventListener childEventListener;
@@ -145,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
 
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -156,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         btListButton = (Button) findViewById(R.id.btdevice);
         twitterButton = (Button) findViewById(R.id.twitter);
         tweetButton = (Button) findViewById(R.id.tweet);
+        startService = (Button)findViewById(R.id.amin_service);
         editText = (EditText) findViewById(R.id.edittext);
         userName = (EditText) findViewById(R.id.userName);
         mDirection = (EditText)findViewById(R.id.amin_write_direction);
@@ -168,7 +181,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         reConnectBt = new ReConnectBluetooth();
         devices1 = new ArrayList<>();
         preferences = act.getSharedPreferences(NKANAPI, Context.MODE_PRIVATE);
-
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -651,6 +663,8 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         }
     }
 
+
+
     Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -670,71 +684,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // 音声認識結果の時
         if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-            //bluetoothとの通信が終了されているので再開する
-            //Socket通信
-            /*
-            InputStream mmlnStream = null;
-            Message valueMsg = new Message();
-            valueMsg.what = VIEW_STATUS;
-            valueMsg.obj = "connecting...";
-            mHandler.sendMessage(valueMsg);
-            try {
-                // 取得したデバイス名を使ってBlueToothでSocket通信
-                mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                mSocket.connect();
-                mmlnStream = mSocket.getInputStream();
-                mmOutputStream = mSocket.getOutputStream();
-
-                //InputStreamのバッファを格納
-                byte[] buffer = new byte[1024];
-
-                //習得したバッファのサイズを格納
-                int bytes;
-                valueMsg = new Message();
-                valueMsg.what = VIEW_STATUS;
-                valueMsg.obj = "connected...";
-                mHandler.sendMessage(valueMsg);
-
-                connectFlg = true;
-
-                while(isRunning) {
-                    //InputStream の読み込み
-                    bytes = mmlnStream.read(buffer);
-                    Log.i(TAG, "bytes=" + bytes);
-
-                    //String型に変換
-                    String readMsg = new String(buffer, 0, bytes);
-
-                    //null以外なら表示
-                    if(readMsg.trim() != null && !readMsg.trim().equals("")) {
-                        Log.i(TAG, "value=" + readMsg.trim());
-
-                        valueMsg = new Message();
-                        valueMsg.what = VIEW_INPUT;
-                        valueMsg.obj = readMsg;//
-                        mHandler.sendMessage(valueMsg);
-                    } else {
-                        Log.i(TAG, "value = nodata");
-                    }
-                }
-            } catch (Exception e) {
-                valueMsg = new Message();
-                valueMsg.what = VIEW_STATUS;
-                valueMsg.obj = "Error1:" + e;
-                mHandler.sendMessage(valueMsg);
-
-                try {
-                    mSocket.close();
-                } catch (Exception ee) {}
-                isRunning = false;
-                connectFlg = false;
-            }
-
-            try{
-                Thread.sleep(500); //3000ミリ秒Sleepする
-            }catch(InterruptedException e){
-            }
-            */
             connectBT();
             // 結果文字列リストを取得
             ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
@@ -753,16 +702,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         break;
                     case "乾杯":
                         Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
-                        try{
-                            // "L"は光らせる
-                            mmOutputStream.write("L".getBytes());
-                            mStatusTextView.setText("L");
-                        } catch (IOException e) {
-                            Message valueMsg = new Message();
-                            valueMsg.what = VIEW_STATUS;
-                            valueMsg.obj = "Error3:" + e;
-                            mHandler.sendMessage(valueMsg);
-                        }
                         break;
         /*---   ルーレット   */
                     case "ルーレットモード":
@@ -787,81 +726,20 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         /*---   一気飲み   ---*/
                     case "一気飲み":
                         Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        sendBtCommand("ikki");
                         break;
                     case "一気飲みします":
                         Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+
                         break;
                     case "赤色":
-
-                        //Socket通信
-                        /*
-                        InputStream mmlnStream2 = null;
-                        Message valueMsg2 = new Message();
-                        valueMsg2.what = VIEW_STATUS;
-                        valueMsg2.obj = "connecting...";
-                        mHandler.sendMessage(valueMsg2);
-                        try {
-
-                            // 取得したデバイス名を使ってBlueToothでSocket通信
-                            mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                            mSocket.connect();
-                            mmlnStream2 = mSocket.getInputStream();
-                            mmOutputStream = mSocket.getOutputStream();
-
-                            //InputStreamのバッファを格納
-                            byte[] buffer = new byte[1024];
-
-                            //習得したバッファのサイズを格納
-                            int bytes;
-                            valueMsg = new Message();
-                            valueMsg.what = VIEW_STATUS;
-                            valueMsg.obj = "connected...";
-                            mHandler.sendMessage(valueMsg);
-
-                            connectFlg = true;
-
-                            while(isRunning) {
-                                //InputStream の読み込み
-                                bytes = mmlnStream2.read(buffer);
-                                Log.i(TAG, "bytes=" + bytes);
-
-                                //String型に変換
-                                String readMsg = new String(buffer, 0, bytes);
-
-                                //null以外なら表示
-                                if(readMsg.trim() != null && !readMsg.trim().equals("")) {
-                                    Log.i(TAG, "value=" + readMsg.trim());
-
-                                    valueMsg = new Message();
-                                    valueMsg.what = VIEW_INPUT;
-                                    valueMsg.obj = readMsg;//
-                                    mHandler.sendMessage(valueMsg);
-                                } else {
-                                    Log.i(TAG, "value = nodata");
-                                }
-                            }
-                        } catch (Exception e) {
-                            valueMsg = new Message();
-                            valueMsg.what = VIEW_STATUS;
-                            valueMsg.obj = "Error1:" + e;
-                            mHandler.sendMessage(valueMsg);
-
-                            try {
-                                mSocket.close();
-                            } catch (Exception ee) {}
-                            isRunning = false;
-                            connectFlg = false;
-                        }
-
-
-                        //reConnectBt.ReConnectSocket();
-                        //Sleep
-                        try{
-                            Thread.sleep(500); //3000ミリ秒Sleepする
-                        }catch(InterruptedException e){
-                        }
-                        */
                         sendBtCommand("red");
+                        break;
+                    case "青色":
+                        sendBtCommand("blue");
+                        break;
+                    case "緑色":
+                        sendBtCommand("green");
                         break;
                 }
             }
@@ -1050,5 +928,78 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     private void showToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
+
+
+
+    //-----------------
+
+
+
+
+    // Serviceの実行（起動時に）
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Bind to LocalService
+        Toast.makeText(this,"おっぱい",Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(this, LocalService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
+        // Arduinoからメッセージ飛んできたら、表示する
+        Handler mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                int action = msg.what;
+                String msgStr = (String)msg.obj;
+                if(action == VIEW_INPUT) {
+                    mInputTextView.setText("検知: " + msgStr);
+                } else if(action == VIEW_STATUS) {
+                    mStatusTextView.setText(msgStr);
+                }
+
+                switch(msgStr){
+                    case "kanpai!!!":
+
+
+                }
+            }
+        };
+
+
+
+
+
+    }
+
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Unbind from the service
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            LocalService.LocalBinder binder = (LocalService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+
 }
 

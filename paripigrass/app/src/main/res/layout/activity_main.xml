@@ -115,7 +115,7 @@
 
             <TextView
                 android:id="@+id/inputValue"
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 />
 
@@ -163,6 +163,18 @@
                 android:layout_height="match_parent"
                 android:id="@+id/tweet"
                 android:text="tweet!"/>
+
+            <Button
+                android:id="@+id/amin_service"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Service Start"/>
+
+            <Button
+                android:id="@+id/unbindService"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UnBind"/>
         </LinearLayout>
 
 
