@@ -26,12 +26,12 @@ public class Tweet {
         AsyncTask<String, Void, Boolean> task = new AsyncTask<String, Void, Boolean>() {
             @Override
             protected Boolean doInBackground(String... params) {
-                try {
+//                try {
                     return true;
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                    return false;
-                }
+//                } catch (TwitterException e) {
+//                    e.printStackTrace();
+//                    return false;
+//                }
             }
 
             @Override
