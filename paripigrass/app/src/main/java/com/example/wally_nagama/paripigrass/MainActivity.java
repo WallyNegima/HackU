@@ -667,6 +667,25 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     case "緑色":
                         sendBtCommand("green");
                         break;
+                    case "虹色":
+                        sendBtCommand("rainbow");
+                        break;
+                    case "紫色":
+                        sendBtCommand("purple");
+                        break;
+                    case "ピンク色":
+                        sendBtCommand("pink");
+                        break;
+                    case "黄色":
+                        //Socket通信
+                        sendBtCommand("yellow");
+                        break;
+                    case "水色":
+                        sendBtCommand("lightblue");
+                        break;
+                    case "オレンジ色":
+                        sendBtCommand("orange");
+                        break;
                 }
             }
         }
