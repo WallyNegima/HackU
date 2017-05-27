@@ -862,17 +862,17 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     case "赤色":
 
                         //Socket通信
-                        InputStream mmlnStream = null;
-                        Message valueMsg = new Message();
-                        valueMsg.what = VIEW_STATUS;
-                        valueMsg.obj = "connecting...";
-                        mHandler.sendMessage(valueMsg);
+                        InputStream mmlnStream2 = null;
+                        Message valueMsg2 = new Message();
+                        valueMsg2.what = VIEW_STATUS;
+                        valueMsg2.obj = "connecting...";
+                        mHandler.sendMessage(valueMsg2);
                         try {
 
                             // 取得したデバイス名を使ってBlueToothでSocket通信
                             mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
                             mSocket.connect();
-                            mmlnStream = mSocket.getInputStream();
+                            mmlnStream2 = mSocket.getInputStream();
                             mmOutputStream = mSocket.getOutputStream();
 
                             //InputStreamのバッファを格納
@@ -889,7 +889,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
                             while(isRunning) {
                                 //InputStream の読み込み
-                                bytes = mmlnStream.read(buffer);
+                                bytes = mmlnStream2.read(buffer);
                                 Log.i(TAG, "bytes=" + bytes);
 
                                 //String型に変換
