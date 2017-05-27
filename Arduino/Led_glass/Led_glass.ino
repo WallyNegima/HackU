@@ -6,27 +6,24 @@
 #include "Wire.h"
 
 
-
-#include <Adafruit_NeoPixel.h>
-#include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h>//neopixelライブラリ群
 #ifdef __AVR__
 #include <avr/power.h>
 #endif
 
-#define PIN 12
-#define NUM_LEDS 20
-#define BRIGHTNESS 50
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_RGB + NEO_KHZ800);
-
-
-
-#define POWER_ON 9
+#define INTERRUPT_PIN 2//ピン番号定義
 #define CMD 7
-#define INTERRUPT_PIN 2
+#define POWER_ON 9
+#define TAPE_LED_PIN 12
 #define LED_PIN 13
-#define CANPAI_THRESHOLD 45000000
+
+#define CANPAI_THRESHOLD 45000000//加速度閾値など
 #define CANPAI_WAITTIME 500
 #define Array 100
+
+#define NUM_LEDS 20//neopixel設定
+#define BRIGHTNESS 50
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, TAPE_LED_PIN, NEO_RGB + NEO_KHZ800);
 
 byte neopix_gamma[] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -47,27 +44,30 @@ byte neopix_gamma[] = {
   215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255
 };
 
-
-int delayval = 500; // delay for half a second
+int delayval = 500; //neopixcel設定
 int wait = 100;
 int shu_wait = 50;
 int shu_tail = 3;
-
 int mycolor = 10;
 
-int counter = 1, counterold = 1, canpaicounter = 1, canpaicounterold = 1;
+
+int counter = 1, counterold = 1, canpaicounter = 1, canpaicounterold = 1;//加速度センサー用フラグ
 int loopcounter, canpailoopcounter;
 unsigned long time0, canpaitime0;
 
-struct accelFlags {
+struct accelFlags {//加速度センサー用フラグ構造体
   int counter, counter_old, loopcounter;
+  bool enter = false;
+  bool enter_start = false;
+  bool enter_end = false;
+  bool enter_wait = false;
   unsigned long time0;
 } canpai, ikki;
 
 MPU6050 mpu;
 bool blinkState = false;
 
-// MPU control/status vars
+// MP                                                      U control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
 uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
 uint8_t devStatus;      // return status after each device operation (0 = success, !0 = error)
@@ -85,17 +85,13 @@ float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
 
-void check_commands(String S_input);//プロトタイプ宣言
-String read_command_from_serial();
-void write_data_to_rom(String String_data);
-String read_data_from_rom(void);
-void read_data_form_mpu6050(void);
+
 
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
 
 void setup() {
   Serial.begin(9600);
-  Serial.setTimeout(1000);
+  Serial.setTimeout(300);
   Wire.begin();
   Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
 
@@ -107,11 +103,10 @@ void setup() {
   digitalWrite(POWER_ON, HIGH);//RN52の電源起動動作
   delay(1500);
   digitalWrite(POWER_ON, LOW);
-  digitalWrite(7,HIGH);
+  digitalWrite(7, HIGH);
 
   // initialize device
   Serial.println(F("Initializing I2C devices..."));
-  delay(500);
   mpu.initialize();
   pinMode(INTERRUPT_PIN, INPUT);
 
@@ -169,21 +164,18 @@ void setup() {
   pika_red();
 }
 
-VectorInt16 myRealaccel[Array] ;
+VectorInt16 myRealaccel;
+long int absolute_xy_accel;
 
 void loop() {
 
   if (mpuInterrupt) {
-    int i;
-    for (i = 0; i < Array; i++) {
-      myRealaccel[i + 1] = myRealaccel[i];
-    }
-    myRealaccel[0] = read_realaccel_form_mpu6050();
+    read_realaccel_form_mpu6050();
+    absolute_xy_accel = (long int)aaReal.x * (long int)aaReal.x + (long int)aaReal.y * (long int)aaReal.y;
   }
-
   /////////////////////////////////////////CANPAI_DETECTION/////////////////////////////////
 
-  if (CANPAI_THRESHOLD <= ((long int)myRealaccel[0].x * (long int)myRealaccel[0].x + (long int)myRealaccel[0].y * (long int)myRealaccel[0].y)) {
+  if (CANPAI_THRESHOLD <= absolute_xy_accel) {
     /*Serial.print("kanpai!" + (String)counter);
       Serial.println("loopc" + (String)loopcounter);
       Serial.println(millis());
@@ -205,22 +197,24 @@ void loop() {
 
   //////////////////////////////////////////IKKINOMI_DETECTION/////////////////////////////////
 
-  /*if (4000 <= (myRealaccel.z)) {
-    Serial.print("ikkistart!" + (String)canpaicounter);
-    Serial.println("ikkiloopc" + (String)canpailoopcounter);
-    Serial.println(millis());
-    Serial.println(canpaitime0);
-    ++canpaicounter;
-
-    } else if (canpaicounterold != 1) {
-    canpaicounter = 1;
-    ++canpailoopcounter;
-    if (millis() - canpaitime0 > 500) {
-      Serial.println("ikkistart!!!");
+  /*if (ikki.enter_wait) {
+    if (millis() - ikki.time0 > 1000) {
+      Serial.println("waitting");
+      Serial.println((long int)aaReal.z);
+      ikki.time0 = millis();
     }
-    canpaitime0 = millis();
+    if ((long int)aaReal.z > 4000) {
+      ikki.enter_wait = false;
+      ikki.enter_start = true;
+      Serial.println("ikkistart");
     }
-    canpaicounterold = canpaicounter;*/
+  }
+  if (ikki.enter_start) {
+    if (millis() - ikki.time0 > 1000) {
+      Serial.println((long int)aaReal.z);
+      ikki.time0 = millis();
+    }
+  }*/
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
 }
@@ -250,41 +244,7 @@ String read_command_from_serial() {
   return &S_input[0];
 }
 
-VectorInt16 read_realaccel_form_mpu6050(void) {
-  mpuInterrupt = false;
 
-  mpuIntStatus = mpu.getIntStatus();
-
-  fifoCount = mpu.getFIFOCount();
-
-  // check for overflow
-  if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
-    // reset so we can continue cleanly
-    mpu.resetFIFO();
-    //Serial.println(F("FIFO overflow!"));
-
-    // otherwise, check for DMP data ready interrupt (this should happen frequently)
-  } else if (mpuIntStatus & 0x02) {
-
-
-    // wait for correct available data length, should be a VERY short wait
-    while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
-
-    // read a packet from FIFO
-    mpu.getFIFOBytes(fifoBuffer, packetSize);
-
-    // display real acceleration, adjusted to remove gravity
-    mpu.dmpGetQuaternion(&q, fifoBuffer);
-    mpu.dmpGetAccel(&aa, fifoBuffer);
-    mpu.dmpGetGravity(&gravity, &q);
-    mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-
-    blinkState = !blinkState;
-    digitalWrite(LED_PIN, blinkState);
-
-    return aaReal;
-  }
-}
 
 void check_commands(String S_input) {
   if (S_input.startsWith("set,")) {
@@ -298,13 +258,25 @@ void check_commands(String S_input) {
     String data_from_rom = read_data_from_rom();
     Serial.println("current," + data_from_rom);
   }
-  else if (S_input.equals("ledon")) {
+  else if (S_input.equals("red")) {
+    pika_red();
+    Serial.println("red");
+  }
+  else if (S_input.equals("green")) {
+    pika_green();
+    Serial.println("green");
+  }
+  else if (S_input.equals("blue")) {
     pika_blue();
-    Serial.println("Led on");
+    Serial.println("blue");
   }
   else if (S_input.equals("ledoff")) {
     no_light();
     Serial.println("Led off");
+  }
+  else if (S_input.equals("ikki")) {
+    Serial.println("ikki_mode");
+    ikki.enter_wait = true;
   }
   else {
     Serial.println(S_input + " is not command");
@@ -345,10 +317,11 @@ void pika_green() {
 }
 
 void pika_blue() {
-  for (int i = 0; i < strip.numPixels(); i++) {
+  int i;
+  for (i = 0; i < strip.numPixels(); i++) {
     strip.setPixelColor(i, strip.Color(0, 0, 255));
-    strip.show();
   }
+  strip.show();
 }
 
 void pika_rainbow() {
@@ -423,4 +396,38 @@ uint32_t Wheel(byte WheelPos) {
   }
   WheelPos -= 170;
   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0, 0);
+}
+
+void read_realaccel_form_mpu6050(void) {
+  mpuInterrupt = false;
+
+  mpuIntStatus = mpu.getIntStatus();
+
+  fifoCount = mpu.getFIFOCount();
+
+  // check for overflow
+  if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
+    // reset so we can continue cleanly
+    mpu.resetFIFO();
+    //Serial.println(F("FIFO overflow!"));
+
+    // otherwise, check for DMP data ready interrupt (this should happen frequently)
+  } else if (mpuIntStatus & 0x02) {
+
+
+    // wait for correct available data length, should be a VERY short wait
+    while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
+
+    // read a packet from FIFO
+    mpu.getFIFOBytes(fifoBuffer, packetSize);
+
+    // display real acceleration, adjusted to remove gravity
+    mpu.dmpGetQuaternion(&q, fifoBuffer);
+    mpu.dmpGetAccel(&aa, fifoBuffer);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+
+    blinkState = !blinkState;
+    digitalWrite(LED_PIN, blinkState);
+  }
 }
