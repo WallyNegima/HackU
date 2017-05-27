@@ -464,8 +464,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 //            ██║  ██╗██║  ██║██║ ╚████║██║     ██║  ██║██║
 //            ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝     ╚═╝  ╚═╝╚═╝
 
-        //テスト
-        //乾杯
         kanpaiButton.setOnClickListener(new View.OnClickListener(){
             int old_color;
             int count;
@@ -486,44 +484,20 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         if(!temp.equals(user.userKey) && count < 3){
 //                            自分以外のkeyの値を書き換え
                             myRef.child("now_color").child(temp).setValue(old_color);
-//                                    .runTransaction(new Transaction.Handler() {
-//                                @Override
-//                                public Transaction.Result doTransaction(MutableData mutableData) {
-//                                    mutableData.setValue(user.now_color);
-//                                    return Transaction.success(mutableData);
-//                                }
-//
-//                                @Override
-//                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-//                                    if (b){
-//                                        Log.d("kanpai::495",""+dataSnapshot);
-//                                    }else{
-//                                        Log.d("kanpai::497",""+databaseError);
-//                                    }
-//                                }
-//                            });
                         }
-
                     }
 
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
                     }
-
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
-
                     }
-
                     @Override
                     public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
                     }
-
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
                     }
                 };
 
@@ -534,26 +508,8 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        myRef.child("now_color").child(user.userKey).runTransaction(new Transaction.Handler() {
-                            @Override
-                            public Transaction.Result doTransaction(MutableData mutableData) {
-//                                値取得
-                                temp_color = mutableData.getValue(int.class);
-                                myRef.child("now_color").removeEventListener(ce);
-                                return Transaction.success(mutableData);
-                            }
-                            @Override
-                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                                myRef.child("now_color").child(user.userKey).removeValue();
-                                user.now_color = temp_color;
-                                myRef.child(user.userKey).child("now_color").setValue(user.now_color);
-                                if (b){
-                                    Log.d("kanpai::560",""+dataSnapshot);
-                                }else{
-                                    Log.d("kanpai::562",""+databaseError);
-                                }
-                            }
-                        });
+//                        自分のデータを削除すると同時に値をくれた人に値の変更を通知
+
                     }
                 },500);
 //                TODO::秒数を調整
@@ -561,278 +517,277 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
      });
 
     }
-        @Override
-        public void onDestroy(){
-            super.onDestroy();
-            Log.v("LifeCycle", "onDestroy");
-            if(btAdapter.isDiscovering()){
-                btAdapter.cancelDiscovery();
-            }
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Log.v("LifeCycle", "onDestroy");
+        if(btAdapter.isDiscovering()){
+            btAdapter.cancelDiscovery();
+        }
 //            btReceiver.unregister();
-        }
+    }
 
 
-        @Override
-        protected void onPause() {
-            super.onPause();
+    @Override
+    protected void onPause() {
+        super.onPause();
 
-            isRunning = false;
-            try {
-                mSocket.close();
-            } catch (Exception e) {}
-        }
+        isRunning = false;
+        try {
+            mSocket.close();
+        } catch (Exception e) {}
+    }
 
-        @Override
-        public void run() {
-            InputStream mmlnStream = null;
-            Message valueMsg = new Message();
+    @Override
+    public void run() {
+        InputStream mmlnStream = null;
+        Message valueMsg = new Message();
+        valueMsg.what = VIEW_STATUS;
+        valueMsg.obj = "connecting...";
+        mHandler.sendMessage(valueMsg);
+
+
+        try {
+
+            // 取得したデバイス名を使ってBlueToothでSocket通信
+            mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+            mSocket.connect();
+            mmlnStream = mSocket.getInputStream();
+            mmOutputStream = mSocket.getOutputStream();
+
+            //InputStreamのバッファを格納
+            byte[] buffer = new byte[1024];
+
+            //習得したバッファのサイズを格納
+            int bytes;
+            valueMsg = new Message();
             valueMsg.what = VIEW_STATUS;
-            valueMsg.obj = "connecting...";
+            valueMsg.obj = "connected...";
             mHandler.sendMessage(valueMsg);
 
+            connectFlg = true;
+
+            while(isRunning) {
+                //InputStream の読み込み
+                bytes = mmlnStream.read(buffer);
+                Log.i(TAG, "bytes=" + bytes);
+
+                //String型に変換
+                String readMsg = new String(buffer, 0, bytes);
+
+                //null以外なら表示
+                if(readMsg.trim() != null && !readMsg.trim().equals("")) {
+                    Log.i(TAG, "value=" + readMsg.trim());
+
+                    valueMsg = new Message();
+                    valueMsg.what = VIEW_INPUT;
+                    valueMsg.obj = readMsg;//
+                    mHandler.sendMessage(valueMsg);
+                } else {
+                    Log.i(TAG, "value = nodata");
+                }
+            }
+        } catch (Exception e) {
+            valueMsg = new Message();
+            valueMsg.what = VIEW_STATUS;
+            valueMsg.obj = "Error1:" + e;
+            mHandler.sendMessage(valueMsg);
 
             try {
+                mSocket.close();
+            } catch (Exception ee) {}
+            isRunning = false;
+            connectFlg = false;
+        }
+    }
 
-                // 取得したデバイス名を使ってBlueToothでSocket通信
-                mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                mSocket.connect();
-                mmlnStream = mSocket.getInputStream();
-                mmOutputStream = mSocket.getOutputStream();
+    @Override
+    public void onClick(View v) {
+        if(v.equals(connectButton)) {
+            //接続されていない場合のみ//
+            if(!connectFlg) {
+                mStatusTextView.setText("try connect");
 
-                //InputStreamのバッファを格納
-                byte[] buffer = new byte[1024];
+                mThread = new Thread(this);
+                isRunning = true;
+                mThread.start();
 
-                //習得したバッファのサイズを格納
-                int bytes;
-                valueMsg = new Message();
-                valueMsg.what = VIEW_STATUS;
-                valueMsg.obj = "connected...";
-                mHandler.sendMessage(valueMsg);
-
-                connectFlg = true;
-
-                while(isRunning) {
-                    //InputStream の読み込み
-                    bytes = mmlnStream.read(buffer);
-                    Log.i(TAG, "bytes=" + bytes);
-
-                    //String型に変換
-                    String readMsg = new String(buffer, 0, bytes);
-
-                    //null以外なら表示
-                    if(readMsg.trim() != null && !readMsg.trim().equals("")) {
-                        Log.i(TAG, "value=" + readMsg.trim());
-
-                        valueMsg = new Message();
-                        valueMsg.what = VIEW_INPUT;
-                        valueMsg.obj = readMsg;//
-                        mHandler.sendMessage(valueMsg);
-                    } else {
-                        Log.i(TAG, "value = nodata");
-                    }
-                }
-            } catch (Exception e) {
-                valueMsg = new Message();
-                valueMsg.what = VIEW_STATUS;
-                valueMsg.obj = "Error1:" + e;
-                mHandler.sendMessage(valueMsg);
-
+            }
+        } else if(v.equals(writeButton)) {
+            //接続中のみ書き込みを行う//
+            if(connectFlg) {
                 try {
-                    mSocket.close();
-                } catch (Exception ee) {}
-                isRunning = false;
-                connectFlg = false;
+                    // EditText(mDirection)からの文字列取得
+                    sendMessage = mDirection.getText().toString();
+                    // マイコンへ送る
+                    mmOutputStream.write(sendMessage.getBytes());
+
+                    mStatusTextView.setText("Write");
+                } catch (IOException e) {
+                    Message valueMsg = new Message();
+                    valueMsg.what = VIEW_STATUS;
+                    valueMsg.obj = "Error3:" + e;
+                    mHandler.sendMessage(valueMsg);
+                }
+            } else {
+                mStatusTextView.setText("Please push the connect button");
             }
         }
+    }
 
+    Handler mHandler = new Handler() {
         @Override
-        public void onClick(View v) {
-            if(v.equals(connectButton)) {
-                //接続されていない場合のみ//
-                if(!connectFlg) {
-                    mStatusTextView.setText("try connect");
-
-                    mThread = new Thread(this);
-                    isRunning = true;
-                    mThread.start();
-
-                }
-            } else if(v.equals(writeButton)) {
-                //接続中のみ書き込みを行う//
-                if(connectFlg) {
-                    try {
-                        // EditText(mDirection)からの文字列取得
-                        sendMessage = mDirection.getText().toString();
-                        // マイコンへ送る
-                        mmOutputStream.write(sendMessage.getBytes());
-
-                        mStatusTextView.setText("Write");
-                    } catch (IOException e) {
-                        Message valueMsg = new Message();
-                        valueMsg.what = VIEW_STATUS;
-                        valueMsg.obj = "Error3:" + e;
-                        mHandler.sendMessage(valueMsg);
-                    }
-                } else {
-                    mStatusTextView.setText("Please push the connect button");
-                }
+        public void handleMessage(Message msg) {
+            int action = msg.what;
+            String msgStr = (String)msg.obj;
+            if(action == VIEW_INPUT) {
+                mInputTextView.setText("　　" + msgStr);
+            } else if(action == VIEW_STATUS) {
+                mStatusTextView.setText(msgStr);
             }
         }
-
-        Handler mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                int action = msg.what;
-                String msgStr = (String)msg.obj;
-                if(action == VIEW_INPUT) {
-                    mInputTextView.setText("　　" + msgStr);
-                } else if(action == VIEW_STATUS) {
-                    mStatusTextView.setText(msgStr);
-                }
-            }
-        };
+    };
 
 
     /*---       startActivityForResultで起動したアクティビティが終了した時に呼び出される関数   ---*/
-        @Override
-        protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-            // 音声認識結果の時
-            if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-                // 結果文字列リストを取得
-                ArrayList<String> results = data.getStringArrayListExtra(
-                        RecognizerIntent.EXTRA_RESULTS);
-                if (results.size() > 0) {
-                    // 認識結果候補で一番有力なものを表示
-                    txvRec.setText(results.get(0));
-                    // checkCharacterに値を渡す
-                    //checkResult.resultRec = results.get(0);
-                    result_voce = results.get(0);
-                /*
-                /*---    この下に結果処理を一応描いてみる   ---*/
-                    switch (result_voce) {
-                /*---   乾杯   ---*/
-                        case "乾杯します":
-                            Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
-                            break;
-                        case "乾杯":
-                            Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
-                            try{
-                                // "L"は光らせる
-                                mmOutputStream.write("L".getBytes());
-                                mStatusTextView.setText("L");
-                            } catch (IOException e) {
-                                Message valueMsg = new Message();
-                                valueMsg.what = VIEW_STATUS;
-                                valueMsg.obj = "Error3:" + e;
-                                mHandler.sendMessage(valueMsg);
-                            }
-                            break;
-                /*---   ルーレット   */
-                        case "ルーレットモード":
-                            Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
-                            break;
-                        case "ルーレット":
-                            Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
-                            break;
-                /*--   司会者   ---*/
-                        case "司会者になりました":
-                            Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
-                            break;
-                        case "司会者":
-                            Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
-                            break;
-                /*---   一気飲み   ---*/
-                        case "一気飲み":
-                            Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
-                            break;
-                        case "一気飲みします":
-                            Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
-                            break;
-                        case "赤色":
-
-
-                            InputStream mmlnStream = null;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // 音声認識結果の時
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            // 結果文字列リストを取得
+            ArrayList<String> results = data.getStringArrayListExtra(
+                    RecognizerIntent.EXTRA_RESULTS);
+            if (results.size() > 0) {
+                // 認識結果候補で一番有力なものを表示
+                txvRec.setText(results.get(0));
+                // checkCharacterに値を渡す
+                //checkResult.resultRec = results.get(0);
+                result_voce = results.get(0);
+            /*
+            /*---    この下に結果処理を一応描いてみる   ---*/
+                switch (result_voce) {
+            /*---   乾杯   ---*/
+                    case "乾杯します":
+                        Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
+                        break;
+                    case "乾杯":
+                        Toast.makeText(this, "乾杯！！", Toast.LENGTH_LONG).show();
+                        try{
+                            // "L"は光らせる
+                            mmOutputStream.write("L".getBytes());
+                            mStatusTextView.setText("L");
+                        } catch (IOException e) {
                             Message valueMsg = new Message();
                             valueMsg.what = VIEW_STATUS;
-                            valueMsg.obj = "connecting...";
+                            valueMsg.obj = "Error3:" + e;
+                            mHandler.sendMessage(valueMsg);
+                        }
+                        break;
+            /*---   ルーレット   */
+                    case "ルーレットモード":
+                        Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+                        break;
+                    case "ルーレット":
+                        Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+                        break;
+            /*--   司会者   ---*/
+                    case "司会者になりました":
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
+                        break;
+                    case "司会者":
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
+                        break;
+            /*---   一気飲み   ---*/
+                    case "一気飲み":
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        break;
+                    case "一気飲みします":
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        break;
+                    case "赤色":
+
+
+                        InputStream mmlnStream = null;
+                        Message valueMsg = new Message();
+                        valueMsg.what = VIEW_STATUS;
+                        valueMsg.obj = "connecting...";
+                        mHandler.sendMessage(valueMsg);
+
+
+                        try {
+
+                            // 取得したデバイス名を使ってBlueToothでSocket通信
+                            mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                            mSocket.connect();
+                            mmlnStream = mSocket.getInputStream();
+                            mmOutputStream = mSocket.getOutputStream();
+
+                            //InputStreamのバッファを格納
+                            byte[] buffer = new byte[1024];
+
+                            //習得したバッファのサイズを格納
+                            int bytes;
+                            valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "connected...";
                             mHandler.sendMessage(valueMsg);
 
+                            connectFlg = true;
+
+                            while(isRunning) {
+                                //InputStream の読み込み
+                                bytes = mmlnStream.read(buffer);
+                                Log.i(TAG, "bytes=" + bytes);
+
+                                //String型に変換
+                                String readMsg = new String(buffer, 0, bytes);
+
+                                //null以外なら表示
+                                if(readMsg.trim() != null && !readMsg.trim().equals("")) {
+                                    Log.i(TAG, "value=" + readMsg.trim());
+
+                                    valueMsg = new Message();
+                                    valueMsg.what = VIEW_INPUT;
+                                    valueMsg.obj = readMsg;//
+                                    mHandler.sendMessage(valueMsg);
+                                } else {
+                                    Log.i(TAG, "value = nodata");
+                                }
+                            }
+                        } catch (Exception e) {
+                            valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "Error1:" + e;
+                            mHandler.sendMessage(valueMsg);
 
                             try {
+                                mSocket.close();
+                            } catch (Exception ee) {}
+                            isRunning = false;
+                            connectFlg = false;
+                        }
 
-                                // 取得したデバイス名を使ってBlueToothでSocket通信
-                                mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                                mSocket.connect();
-                                mmlnStream = mSocket.getInputStream();
-                                mmOutputStream = mSocket.getOutputStream();
-
-                                //InputStreamのバッファを格納
-                                byte[] buffer = new byte[1024];
-
-                                //習得したバッファのサイズを格納
-                                int bytes;
-                                valueMsg = new Message();
-                                valueMsg.what = VIEW_STATUS;
-                                valueMsg.obj = "connected...";
-                                mHandler.sendMessage(valueMsg);
-
-                                connectFlg = true;
-
-                                while(isRunning) {
-                                    //InputStream の読み込み
-                                    bytes = mmlnStream.read(buffer);
-                                    Log.i(TAG, "bytes=" + bytes);
-
-                                    //String型に変換
-                                    String readMsg = new String(buffer, 0, bytes);
-
-                                    //null以外なら表示
-                                    if(readMsg.trim() != null && !readMsg.trim().equals("")) {
-                                        Log.i(TAG, "value=" + readMsg.trim());
-
-                                        valueMsg = new Message();
-                                        valueMsg.what = VIEW_INPUT;
-                                        valueMsg.obj = readMsg;//
-                                        mHandler.sendMessage(valueMsg);
-                                    } else {
-                                        Log.i(TAG, "value = nodata");
-                                    }
-                                }
-                            } catch (Exception e) {
-                                valueMsg = new Message();
-                                valueMsg.what = VIEW_STATUS;
-                                valueMsg.obj = "Error1:" + e;
-                                mHandler.sendMessage(valueMsg);
-
-                                try {
-                                    mSocket.close();
-                                } catch (Exception ee) {}
-                                isRunning = false;
-                                connectFlg = false;
-                            }
-
-                            try{
-                                Thread.sleep(500); //3000ミリ秒Sleepする
-                            }catch(InterruptedException e){}
+                        try{
+                            Thread.sleep(500); //3000ミリ秒Sleepする
+                        }catch(InterruptedException e){}
 
 
 
 
 
-                            try{
-                                mmOutputStream.write("red".getBytes());
-                                //mStatusTextView.setText("red");
-                            } catch (IOException e) {
-                                Message valueMsg1 = new Message();
-                                valueMsg1.what = VIEW_STATUS;
-                                valueMsg1.obj = "Error3:" + e;
-                                mHandler.sendMessage(valueMsg1);
-                            }
-                            break;
-                    }
+                        try{
+                            mmOutputStream.write("red".getBytes());
+                            //mStatusTextView.setText("red");
+                        } catch (IOException e) {
+                            Message valueMsg1 = new Message();
+                            valueMsg1.what = VIEW_STATUS;
+                            valueMsg1.obj = "Error3:" + e;
+                            mHandler.sendMessage(valueMsg1);
+                        }
+                        break;
                 }
             }
-
+        }
     }
 
     private void registUserID(final DatabaseReference databaseReference, final User user){
