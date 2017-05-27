@@ -88,13 +88,12 @@ public class Roulette {
                             }
                         }, 5000);
                     }
-            }
+                }
            }
         }
     private void sendBtCommand(String str){
         try{
             mmOutputStream.write(str.getBytes());
-            //mStatusTextView.setText("red");
         } catch (IOException e) {
             Message valueMsg1 = new Message();
             valueMsg1.what = VIEW_STATUS;
@@ -103,9 +102,9 @@ public class Roulette {
         }
     }
 
-    public String color2string(int color){
+    public String color2string(int color) {
         String str;
-        switch (color){
+        switch (color) {
             case 1:
                 str = "red";
                 break;
@@ -133,12 +132,6 @@ public class Roulette {
             default:
                 str = "ranbow";
         }
-
         return str;
     }
-
-
-
-
-
 }

@@ -37,7 +37,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -57,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     Context act = this;
     ChildEventListener childEventListener;
     String key;
-    int color;
     TextView test_tv, btdevicename;
     int removedUserId = 0;
     BluetoothAdapter btAdapter;
@@ -376,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                 });
                             }
                             if (dataSnapshot.getKey().equals("Roulette")){
-//                              TODO::LED ON
+//                              LED ON
                                 sendBtCommand(color2string((user.now_color+1)%8+1));
                             }
                         }
@@ -465,22 +463,18 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
                     @Override
                     public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
                     }
 
                     @Override
                     public void onChildRemoved(DataSnapshot dataSnapshot) {
-
                     }
 
                     @Override
                     public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
                     }
                 };
 
@@ -511,6 +505,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                 }
                             }
                         });
+
                     }
                 }, 500);
 //                TODO::秒数を調整
