@@ -36,7 +36,7 @@ public class Tweet {
             @Override
             protected Boolean doInBackground(String... params) {
                 try {
-                    mTwitter.updateStatus("人生" + preferences.getInt(NKANAPI, 0) + "度目の乾杯！！！！ @ " + dTime.toString());
+                    mTwitter.updateStatus("人生" + preferences.getInt(NKANAPI, 1) + "度目の乾杯！！！！ @ " + dTime.toString() +"\n" + " #ParipiGrass");
                     return true;
                 } catch (TwitterException e) {
                     e.printStackTrace();

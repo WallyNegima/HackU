@@ -23,19 +23,19 @@ public class TwitterUtils {
      * @param context
      * @return
      */
-//    public static Twitter getTwitterInstance(Context context) {
-//        String consumerKey = context.getString(R.string.twitter_consumer_key);
-//        String consumerSecret = context.getString(R.string.twitter_consumer_secret);
-//
-//        TwitterFactory factory = new TwitterFactory();
-//        Twitter twitter = factory.getInstance();
-//        twitter.setOAuthConsumer(consumerKey, consumerSecret);
-//
-//        if (hasAccessToken(context)) {
-//            twitter.setOAuthAccessToken(loadAccessToken(context));
-//        }
-//        return twitter;
-//    }
+    public static Twitter getTwitterInstance(Context context) {
+        String consumerKey = context.getString(R.string.twitter_consumer_key);
+        String consumerSecret = context.getString(R.string.twitter_consumer_secret);
+
+        TwitterFactory factory = new TwitterFactory();
+        Twitter twitter = factory.getInstance();
+        twitter.setOAuthConsumer(consumerKey, consumerSecret);
+
+        if (hasAccessToken(context)) {
+            twitter.setOAuthAccessToken(loadAccessToken(context));
+        }
+        return twitter;
+    }
 
     /**
      * アクセストークンをプリファレンスに保存します。
