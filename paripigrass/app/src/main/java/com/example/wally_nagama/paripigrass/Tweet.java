@@ -6,6 +6,9 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
+import java.util.Date;
+
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 /**
@@ -13,25 +16,32 @@ import twitter4j.TwitterException;
  */
 
 public class Tweet {
+    private Twitter mTwitter;
     private Context context;
-    private SharedPreferences sharedPreferences;
+    Date dTime = new Date();
+    SharedPreferences preferences;
+    String NKANAPI = "numberOfKanapi";
 
-    public Tweet(Context c){
+
+    public Tweet(Context c, Twitter t){
         //コンストラクタ
         this.context = c;
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.mTwitter = t;
+        preferences = c.getSharedPreferences(NKANAPI, Context.MODE_PRIVATE);
+
     }
 
     public void tweet() {
         AsyncTask<String, Void, Boolean> task = new AsyncTask<String, Void, Boolean>() {
             @Override
             protected Boolean doInBackground(String... params) {
-//                try {
+                try {
+                    mTwitter.updateStatus("人生" + preferences.getInt(NKANAPI, 0) + "度目の乾杯！！！！ @ " + dTime.toString());
                     return true;
-//                } catch (TwitterException e) {
-//                    e.printStackTrace();
-//                    return false;
-//                }
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
 
             @Override
@@ -44,7 +54,7 @@ public class Tweet {
                 }
             }
         };
-
+        task.execute("aa");
     }
 
     private void showToast(String text) {

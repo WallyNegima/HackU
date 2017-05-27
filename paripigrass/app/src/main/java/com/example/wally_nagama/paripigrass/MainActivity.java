@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     User user;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton, kanpaiButton, btListButton;
+    Button button, roomCreateButton, kanpaiButton, btListButton, twitterButton, tweetButton;
     EditText editText, userName, roomNumber, mDirection;
     Context act = this;
     ChildEventListener childEventListener;
@@ -65,6 +65,14 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     List<BluetoothDevice> devices1;
     ArrayList<String> itemArray = new ArrayList<String>();
     final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
+    SharedPreferences preferences;
+
+    /* twitter */
+    private String mCallbackURL;
+    private Twitter mTwitter;
+    private RequestToken mRequestToken;
+    public Tweet tweet;
+    String NKANAPI = "numberOfKanapi";
 
     /* tag */
     private static final String TAG = "BluetoothSample";
@@ -120,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     private TextView txvAction;
     private TextView txvRec;
     private static final int REQUEST_CODE = 0;
-    public Context context;
     private String result_voce;
 
 
@@ -133,16 +140,20 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         button = (Button) findViewById(R.id.button);
         roomCreateButton = (Button) findViewById(R.id.userCreate);
         kanpaiButton = (Button) findViewById(R.id.kanpai);
-        btListButton = (Button)findViewById(R.id.btdevice);
+        btListButton = (Button) findViewById(R.id.btdevice);
+        twitterButton = (Button) findViewById(R.id.twitter);
+        tweetButton = (Button) findViewById(R.id.tweet);
         editText = (EditText) findViewById(R.id.edittext);
         userName = (EditText) findViewById(R.id.userName);
         mDirection = (EditText)findViewById(R.id.amin_write_direction);
         roomNumber = (EditText) findViewById(R.id.roomNumber);
         test_tv = (TextView) findViewById(R.id.test_tv);
-        btdevicename = (TextView)findViewById(R.id.btdevicename);
+        btdevicename = (TextView) findViewById(R.id.btdevicename);
 
         user = new User();
         devices1 = new ArrayList<>();
+        preferences = act.getSharedPreferences(NKANAPI, Context.MODE_PRIVATE);
+
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -163,15 +174,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         writeButton.setOnClickListener(this);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mStatusTextView.setText("SearchDevice");
-        /*
-        Set<BluetoothDevice> devices = mAdapter.getBondedDevices();
-        for (BluetoothDevice device : devices) {
-            if (device.getName().equals(DEVICE_NAME)) {
-                mStatusTextView.setText("find:" + device.getName());
-                mDevice = device;
-            }
-        }
-        */
 
         //音声認識
         txvAction = (TextView) findViewById(R.id.amin_txvAction);
@@ -250,6 +252,34 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         })
                         .setNegativeButton("Cancel", null)
                         .show();
+            }
+        });
+
+        /*---    twitter認証！ ---*/
+        mCallbackURL = getString(R.string.twitter_callback_url);
+        mTwitter = TwitterUtils.getTwitterInstance(this);
+        tweet = new Tweet(this, mTwitter);
+        twitterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!TwitterUtils.hasAccessToken(act)) {
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putInt(NKANAPI, 1);
+                    editor.apply();
+                    startAuthorize();
+                } else {
+                    showToast("もう認証されてるよ");
+                }
+            }
+        });
+        /*--  つぶやく！！    --*/
+        tweetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putInt(NKANAPI, preferences.getInt(NKANAPI, 0)+1);
+                editor.apply();
+                tweet.tweet();
             }
         });
 
@@ -561,15 +591,15 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
      });
 
     }
-        @Override
-        public void onDestroy(){
-            super.onDestroy();
-            Log.v("LifeCycle", "onDestroy");
-            if(btAdapter.isDiscovering()){
-                btAdapter.cancelDiscovery();
-            }
-//            btReceiver.unregister();
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.v("LifeCycle", "onDestroy");
+        if (btAdapter.isDiscovering()) {
+            btAdapter.cancelDiscovery();
         }
+    }
 
 
         @Override
@@ -862,4 +892,82 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             }
         });
     }
+
+
+
+    /**
+     * OAuth認証（厳密には認可）を開始します。
+     */
+    private void startAuthorize() {
+        AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                try {
+                    mRequestToken = mTwitter.getOAuthRequestToken(mCallbackURL);
+                    return mRequestToken.getAuthorizationURL();
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String url) {
+                if (url != null) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(intent);
+                } else {
+                    // 失敗。。。
+                }
+            }
+        };
+        task.execute();
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        if (intent == null
+                || intent.getData() == null
+                || !intent.getData().toString().startsWith(mCallbackURL)) {
+            return;
+        }
+        String verifier = intent.getData().getQueryParameter("oauth_verifier");
+
+        AsyncTask<String, Void, AccessToken> task = new AsyncTask<String, Void, AccessToken>() {
+            @Override
+            protected AccessToken doInBackground(String... params) {
+                try {
+                    return mTwitter.getOAuthAccessToken(mRequestToken, params[0]);
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(AccessToken accessToken) {
+                if (accessToken != null) {
+                    // 認証成功！
+                    showToast("認証成功！");
+                    successOAuth(accessToken);
+                } else {
+                    // 認証失敗。。。
+                    showToast("認証失敗。。。");
+                }
+            }
+        };
+        task.execute(verifier);
+    }
+
+    private void successOAuth(AccessToken accessToken) {
+        TwitterUtils.storeAccessToken(this, accessToken);
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        //finish();
+    }
+
+    private void showToast(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
 }
+
