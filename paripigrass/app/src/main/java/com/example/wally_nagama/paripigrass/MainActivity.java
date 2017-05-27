@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     ArrayList<String> itemArray = new ArrayList<String>();
     final List<Integer> checkedItems = new ArrayList<>();  //選択されたアイテム
     SharedPreferences preferences;
+    Roulette roulette;
 
     /* twitter */
     private String mCallbackURL;
