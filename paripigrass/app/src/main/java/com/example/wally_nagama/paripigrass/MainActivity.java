@@ -58,6 +58,7 @@ import twitter4j.auth.RequestToken;
 
 public class MainActivity extends AppCompatActivity implements Runnable, View.OnClickListener {
     User user;
+    ReConnectBluetooth reConnectBt;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
     Button button, roomCreateButton, kanpaiButton, btListButton, twitterButton, tweetButton;
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     String NKANAPI = "numberOfKanapi";
 
     /* tag */
-    private static final String TAG = "BluetoothSample";
+    private static final String TAG = "Bluetooth";
 
     /* Bluetooth Adapter */
     private BluetoothAdapter mAdapter;
@@ -159,6 +160,8 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         btdevicename = (TextView) findViewById(R.id.btdevicename);
 
         user = new User();
+        //BlueTooth再接続
+        reConnectBt = new ReConnectBluetooth();
         devices1 = new ArrayList<>();
         preferences = act.getSharedPreferences(NKANAPI, Context.MODE_PRIVATE);
 
@@ -773,22 +776,8 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         break;
                     case "ルーレット":
                         Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
-                        break;
-        /*--   司会者   ---*/
-                    case "司会者になりました":
-                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
-                        break;
-                    case "司会者":
-                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
-                        break;
-        /*---   一気飲み   ---*/
-                    case "一気飲み":
-                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
-                        break;
-                    case "一気飲みします":
-                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
-                        break;
-                    case "赤色":
+
+                        //Socket通信
                         InputStream mmlnStream = null;
                         Message valueMsg = new Message();
                         valueMsg.what = VIEW_STATUS;
@@ -847,6 +836,93 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             connectFlg = false;
                         }
 
+                        try{
+                            Thread.sleep(500); //3000ミリ秒Sleepする
+                        }catch(InterruptedException e){
+                        }
+
+                        Random rnd1 = new Random();
+                        myRef.child("Roulette").child("light_now").setValue(1);
+                        myRef.child("Roulette").child("count").setValue(rnd1.nextInt(5) + 10);
+                        break;
+        /*--   司会者   ---*/
+                    case "司会者になりました":
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
+                        break;
+                    case "司会者":
+                        Toast.makeText(this, "司会者になりました", Toast.LENGTH_LONG).show();
+                        break;
+        /*---   一気飲み   ---*/
+                    case "一気飲み":
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        break;
+                    case "一気飲みします":
+                        Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
+                        break;
+                    case "赤色":
+
+                        //Socket通信
+                        InputStream mmlnStream = null;
+                        Message valueMsg = new Message();
+                        valueMsg.what = VIEW_STATUS;
+                        valueMsg.obj = "connecting...";
+                        mHandler.sendMessage(valueMsg);
+                        try {
+
+                            // 取得したデバイス名を使ってBlueToothでSocket通信
+                            mSocket = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                            mSocket.connect();
+                            mmlnStream = mSocket.getInputStream();
+                            mmOutputStream = mSocket.getOutputStream();
+
+                            //InputStreamのバッファを格納
+                            byte[] buffer = new byte[1024];
+
+                            //習得したバッファのサイズを格納
+                            int bytes;
+                            valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "connected...";
+                            mHandler.sendMessage(valueMsg);
+
+                            connectFlg = true;
+
+                            while(isRunning) {
+                                //InputStream の読み込み
+                                bytes = mmlnStream.read(buffer);
+                                Log.i(TAG, "bytes=" + bytes);
+
+                                //String型に変換
+                                String readMsg = new String(buffer, 0, bytes);
+
+                                //null以外なら表示
+                                if(readMsg.trim() != null && !readMsg.trim().equals("")) {
+                                    Log.i(TAG, "value=" + readMsg.trim());
+
+                                    valueMsg = new Message();
+                                    valueMsg.what = VIEW_INPUT;
+                                    valueMsg.obj = readMsg;//
+                                    mHandler.sendMessage(valueMsg);
+                                } else {
+                                    Log.i(TAG, "value = nodata");
+                                }
+                            }
+                        } catch (Exception e) {
+                            valueMsg = new Message();
+                            valueMsg.what = VIEW_STATUS;
+                            valueMsg.obj = "Error1:" + e;
+                            mHandler.sendMessage(valueMsg);
+
+                            try {
+                                mSocket.close();
+                            } catch (Exception ee) {}
+                            isRunning = false;
+                            connectFlg = false;
+                        }
+
+
+                        //reConnectBt.ReConnectSocket();
+                        //Sleep
                         try{
                             Thread.sleep(500); //3000ミリ秒Sleepする
                         }catch(InterruptedException e){
