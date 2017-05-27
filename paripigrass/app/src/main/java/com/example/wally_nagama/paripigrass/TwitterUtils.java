@@ -72,7 +72,9 @@ public class TwitterUtils {
         String token = preferences.getString(TOKEN, null);
         String tokenSecret = preferences.getString(TOKEN_SECRET, null);
         if (token != null && tokenSecret != null) {
-            return new AccessToken(token, tokenSecret);
+            AccessToken at = new AccessToken(token, tokenSecret);
+            Log.d("accestolen", at.toString());
+            return at;
         } else {
             return null;
         }
