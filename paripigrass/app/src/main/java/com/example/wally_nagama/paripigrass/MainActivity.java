@@ -681,6 +681,11 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                             break;
                         case "ルーレット":
                             Toast.makeText(this, "ルーレット", Toast.LENGTH_LONG).show();
+
+                            Random rnd = new Random();
+                            myRef.child("Roulette").child("light_now").setValue(1);
+                            myRef.child("Roulette").child("count").setValue(rnd.nextInt(5) + 10);
+
                             break;
                 /*--   司会者   ---*/
                         case "司会者になりました":
@@ -696,6 +701,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                         case "一気飲みします":
                             Toast.makeText(this, "一気飲み", Toast.LENGTH_LONG).show();
                             break;
+                        /*----------    LED光らす    --------*/
                         case "赤色":
 
 

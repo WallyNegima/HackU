@@ -26,6 +26,8 @@ public class TwitterUtils {
      * @param context
      * @return
      */
+
+    /*--------- Twitter
     public static Twitter getTwitterInstance(Context context) {
         String consumerKey = context.getString(R.string.twitter_consumer_key);
         String consumerSecret = context.getString(R.string.twitter_consumer_secret);
@@ -39,6 +41,7 @@ public class TwitterUtils {
         }
         return twitter;
     }
+    */
 
     /**
      * アクセストークンをプリファレンスに保存します。

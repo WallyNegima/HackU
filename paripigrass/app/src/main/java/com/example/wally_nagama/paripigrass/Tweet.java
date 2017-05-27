@@ -6,7 +6,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
-import twitter4j.TwitterException;
+//import twitter4j.TwitterException;
 
 /**
  * Created by wally_nagama on 2017/05/27.
@@ -22,6 +22,7 @@ public class Tweet {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
+    /*
     public void tweet() {
         AsyncTask<String, Void, Boolean> task = new AsyncTask<String, Void, Boolean>() {
             @Override
@@ -50,4 +51,5 @@ public class Tweet {
     private void showToast(String text) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
     }
+    */
 }
