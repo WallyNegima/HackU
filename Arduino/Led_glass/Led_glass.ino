@@ -269,18 +269,52 @@ void check_commands(String S_input) {
   else if (S_input.equals("red")) {
     pika_red();
     Serial.println("red");
+    ledfalse(0);
   }
   else if (S_input.equals("green")) {
     pika_green();
     Serial.println("green");
+    ledfalse(1);
   }
   else if (S_input.equals("blue")) {
     pika_blue();
     Serial.println("blue");
+    ledfalse(2);
+  }
+  else if (S_input.equals("purple")) {
+    pika_purple();
+    Serial.println("purple");
+    ledfalse(3);
+  }
+  else if (S_input.equals("yellow")) {
+    pika_yellow();
+    Serial.println("yellow");
+    ledfalse(4);
+  }
+  else if (S_input.equals("pink")) {
+    pika_pink();
+    Serial.println("pink");
+    ledfalse(5);
+  }
+  else if (S_input.equals("orange")) {
+    pika_orange();
+    Serial.println("orange");
+    ledfalse(6);
+  }
+  else if (S_input.equals("lightblue")) {
+    pika_yellow();
+    Serial.println("yellow");
+    ledfalse(7);
+  }
+  else if (S_input.equals("rainbow")) {
+    pika_rainbow();
+    Serial.println("rainbow");
+    ledfalse(8);
   }
   else if (S_input.equals("ledoff")) {
     no_light();
     Serial.println("Led off");
+    
   }
   else if (S_input.equals("ikki")) {
     Serial.println("ikki_mode");
@@ -329,7 +363,8 @@ void ledPatternCheck(){
     ledfalse(8);
     pika_rainbow();
   }else if(ledPatterns[9]){
-    //
+    //ledoff
+    no_light();
     ledfalse(9);
   }else{
   }
