@@ -1,173 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.wally_nagama.paripigrass.MainActivity">
 
-    <ScrollView android:id="@+id/ScrollView01"
-        android:layout_width="fill_parent" android:layout_height="fill_parent">
-
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="0dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hello World!"
-            android:id="@+id/test_tv"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <ScrollView
+        android:id="@+id/ScrollView01"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@color/common_google_signin_btn_text_dark_default"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="27dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_editor_absoluteY="100dp">
+
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+
+            </LinearLayout>
+
             <EditText
-                android:id="@+id/edittext"
+                android:id="@+id/roomNumber"
                 android:layout_width="400px"
                 android:layout_height="wrap_content"
                 android:digits="1234567890"
-                android:hint="NumberOnly"
-                />
-
-            <Button
-                android:id="@+id/button"
-                android:text="send"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-        </LinearLayout>
-        <EditText
-            android:id="@+id/roomNumber"
-            android:layout_width="400px"
-            android:layout_height="wrap_content"
-            android:hint="roomNumber"
-            android:digits="1234567890" />
-
-        <EditText
-            android:id="@+id/userName"
-            android:layout_width="400px"
-            android:layout_height="wrap_content"
-            android:hint="username"
-            />
-
-        <Button
-            android:id="@+id/userCreate"
-            android:text="join room"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <Button
-            android:id="@+id/btdevice"
-            android:text="接続する機器を選ぶ"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/btdevicename"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="接続する機器"/>
-
-        <Button
-            android:id="@+id/kanpai"
-            android:text="KANPAI"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:layout_editor_absoluteY="0dp"
-            tools:layout_editor_absoluteX="0dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/bt_text"
-                tools:layout_editor_absoluteY="8dp"
-                tools:layout_editor_absoluteX="0dp" />
-
-            <Button
-                android:id="@+id/amin_light_on_led"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="光れ...LED...ッ!!!!"/>
-
-
-            <Button android:id="@+id/connectButton"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:text="Connect" />
-
-            <TextView
-                android:id="@+id/statusValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
-            <TextView
-                android:id="@+id/inputValue"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                />
+                android:hint="roomNumber"
+                android:inputType="number" />
 
             <EditText
-                android:id="@+id/amin_write_direction"
-                android:layout_width="400dp"
+                android:id="@+id/userName"
+                android:layout_width="400px"
                 android:layout_height="wrap_content"
-                android:hint="送りたい文字を書いてね" />
+                android:hint="username" />
 
-            <Button android:id="@+id/writeButton"
-                android:layout_width="fill_parent"
+            <Button
+                android:id="@+id/userCreate"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Write" />
+                android:background="@color/common_google_signin_btn_text_dark_disabled"
+                android:text="join room" />
+
+            <Button
+                android:id="@+id/btdevice"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/common_google_signin_btn_text_dark_disabled"
+                android:text="接続する機器を選ぶ" />
 
             <TextView
-                android:id="@+id/txv_recog"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"/>
-
-            <Button
-                android:id="@+id/amin_recog"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="音声認識"/>
-
-            <TextView
-                android:id="@+id/amin_txvAction"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"/>
-
-            <Button
-                android:id="@+id/amin_heybutton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="へ〜"/>
-            <Button
+                android:id="@+id/btdevicename"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/twitter"
-                android:text="twitter"/>
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/tweet"
-                android:text="tweet!"/>
+                android:text="接続する機器" />
+
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_editor_absoluteY="0dp">
+
+                <TextView
+                    android:id="@+id/bt_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_editor_absoluteY="8dp" />
+
+
+                <Button
+                    android:id="@+id/connectButton"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/common_google_signin_btn_text_dark_disabled"
+                    android:text="Connect" />
+
+
+                <Button
+                    android:id="@+id/amin_recog"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/common_google_signin_btn_text_dark_disabled"
+                    android:text="音声認識" />
+
+                <Button
+                    android:id="@+id/twitter"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/common_google_signin_btn_text_dark_disabled"
+                    android:text="twitter" />
+
+            </LinearLayout>
+
+            <com.google.android.gms.ads.AdView
+                android:id="@+id/adView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                ads:adSize="MEDIUM_RECTANGLE"
+                ads:adUnitId="@string/banner_ad_unit_id"
+                tools:layout_editor_absoluteX="16dp"
+                tools:layout_editor_absoluteY="445dp"></com.google.android.gms.ads.AdView>
+
+
         </LinearLayout>
-
-
-    </LinearLayout>
-
 
 
     </ScrollView>
