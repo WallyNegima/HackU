@@ -53,8 +53,7 @@ public class Roulette {
             if (dataSnapshot.child("light_now").child("id").getValue() == null) {return;}
             if (dataSnapshot.child("light_now").child("id").getValue(int.class) == user.userId){
                 count = dataSnapshot.child("light_now").child("count").getValue(int.class);
-//                                    TODO::ピカピカ〜
-                sendBtCommand(color2string(now_color));
+          sendBtCommand(color2string(now_color));
 //                                    countが0やったら終了
                     if (count > 0) {
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {

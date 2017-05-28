@@ -24,6 +24,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -51,12 +54,12 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     ReConnectBluetooth reConnectBt;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    Button button, roomCreateButton, kanpaiButton, btListButton, twitterButton, tweetButton;
-    EditText editText, userName, roomNumber, mDirection;
+    Button roomCreateButton, btListButton, twitterButton;
+    EditText userName, roomNumber;
     Context act = this;
     ChildEventListener childEventListener;
     String key;
-    TextView test_tv, btdevicename;
+    TextView btdevicename;
     int removedUserId = 0;
     BluetoothAdapter btAdapter;
     BlueToothReceiver btReceiver;
@@ -126,10 +129,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
     Message valueMsg;
 
     /* 音声認識で使うよーんwwwwww  */
-    private TextView txvAction;
-    private TextView txvRec;
     private static final int REQUEST_CODE = 0;
-    public Context context;
     private String result_voce;
 
 
@@ -138,56 +138,32 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        button = (Button) findViewById(R.id.button);
         roomCreateButton = (Button) findViewById(R.id.userCreate);
-        kanpaiButton = (Button) findViewById(R.id.kanpai);
         btListButton = (Button) findViewById(R.id.btdevice);
         twitterButton = (Button) findViewById(R.id.twitter);
-        tweetButton = (Button) findViewById(R.id.tweet);
-        editText = (EditText) findViewById(R.id.edittext);
         userName = (EditText) findViewById(R.id.userName);
-        mDirection = (EditText) findViewById(R.id.amin_write_direction);
         roomNumber = (EditText) findViewById(R.id.roomNumber);
-        test_tv = (TextView) findViewById(R.id.test_tv);
         btdevicename = (TextView) findViewById(R.id.btdevicename);
 
         user = new User();
+
+//        広告
+        MobileAds.initialize(getApplicationContext(), "ca-app-pub-3940256099942544~3347511713");
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
         //BlueTooth再接続
         reConnectBt = new ReConnectBluetooth();
         devices1 = new ArrayList<>();
         preferences = act.getSharedPreferences(NKANAPI, Context.MODE_PRIVATE);
 
 
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                roulette.start();
-//                TODO::LED消灯
-            }
-        });
-
         //--------------BlueToothLED
-        mInputTextView = (TextView) findViewById(R.id.inputValue);
-        mStatusTextView = (TextView) findViewById(R.id.statusValue);
         connectButton = (Button) findViewById(R.id.connectButton);
-        writeButton = (Button) findViewById(R.id.writeButton);
         connectButton.setOnClickListener(this);
-        writeButton.setOnClickListener(this);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mStatusTextView.setText("SearchDevice");
 
-        //音声認識
-        txvAction = (TextView) findViewById(R.id.amin_txvAction);
-        txvRec = (TextView) findViewById(R.id.txv_recog);
-
-        /*---    へーへーボタンリスナー ---*/
-        findViewById(R.id.amin_heybutton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                txvAction.setText("へ〜〜〜〜！！！！");
-                //Toast.makeText(context, "乾杯", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         /*---     音声認識リスナー   ----*/
         findViewById(R.id.amin_recog).setOnClickListener(new View.OnClickListener() {
@@ -271,16 +247,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                 } else {
                     showToast("もう認証されてるよ");
                 }
-            }
-        });
-        /*--  つぶやく！！    --*/
-        tweetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putInt(NKANAPI, preferences.getInt(NKANAPI, 0) + 1);
-                editor.apply();
-                tweet.tweet();
             }
         });
 
@@ -373,9 +339,9 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                                     }
                                 });
                             }
-                            if (dataSnapshot.getKey().equals("Roulette")){
+                            if (dataSnapshot.getKey().equals("Roulette")) {
 //                              LED ON
-                                sendBtCommand(color2string((user.now_color+1)%8+1));
+                                sendBtCommand(color2string((user.now_color + 1) % 8 + 1));
                             }
                         }
 
@@ -396,10 +362,10 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
                     registUserID(myRef, user);
                     user.userName = userName.getText().toString();
                     myRef.addChildEventListener(childEventListener);
-                    roulette = new Roulette(user,myRef, mmOutputStream, mHandler);
+                    roulette = new Roulette(user, myRef, mmOutputStream, mHandler);
                     roomCreateButton.setText("部屋を退出する");
 
-                } else  {
+                } else {
                     //すでに部屋に入っているときの処理
                     //退出する
                     //部屋の人数 numberOfUserをデクリメントして，自分自身のremoveする．
@@ -438,80 +404,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
 
         //テスト
         //乾杯
-        kanpaiButton.setOnClickListener(new View.OnClickListener() {
-            int old_color;
-            int count;
-            int temp_color;
-
-            ChildEventListener ce;
-            @Override
-            public void onClick(View v) {
-                old_color = user.now_color;
-                user.kanpai_gotNewColor = false;
-                count = 0;
-                ce = new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                        追加された値の取得
-                        String temp = dataSnapshot.getKey();
-                        count++;
-                        if (!temp.equals(user.userKey) && count < 3) {
-//                            自分以外のkeyの値を書き換え
-                            myRef.child("now_color").child(temp).setValue(old_color);
-                        }
-                    }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                    }
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-                    }
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                };
-
-                myRef.child("now_color").child(user.userKey).setValue(user.now_color);
-                myRef.child("now_color").addChildEventListener(ce);
-
-
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        myRef.child("now_color").child(user.userKey).runTransaction(new Transaction.Handler() {
-                            @Override
-                            public Transaction.Result doTransaction(MutableData mutableData) {
-//                                値取得
-                                temp_color = mutableData.getValue(int.class);
-                                myRef.child("now_color").removeEventListener(ce);
-                                return Transaction.success(mutableData);
-                            }
-                            @Override
-                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-                                myRef.child("now_color").child(user.userKey).removeValue();
-                                user.now_color = temp_color;
-                                myRef.child(user.userKey).child("now_color").setValue(user.now_color);
-                                if (b) {
-                                    Log.d("kanpai::560", "" + dataSnapshot);
-                                } else {
-                                    Log.d("kanpai::562", "" + databaseError);
-                                }
-                            }
-                        });
-
-                    }
-                }, 500);
-//                TODO::秒数を調整
-            }
-        });
-
     }
 
     @Override
@@ -546,31 +438,10 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
         if (v.equals(connectButton)) {
             //接続されていない場合のみ//
             if (!connectFlg) {
-                mStatusTextView.setText("try connect");
-
                 mThread = new Thread(this);
                 isRunning = true;
                 mThread.start();
 
-            }
-        } else if (v.equals(writeButton)) {
-            //接続中のみ書き込みを行う//
-            if (connectFlg) {
-                try {
-                    // EditText(mDirection)からの文字列取得
-                    sendMessage = mDirection.getText().toString();
-                    // マイコンへ送る
-                    mmOutputStream.write(sendMessage.getBytes());
-
-                    mStatusTextView.setText("Write");
-                } catch (IOException e) {
-                    Message valueMsg = new Message();
-                    valueMsg.what = VIEW_STATUS;
-                    valueMsg.obj = "Error3:" + e;
-                    mHandler.sendMessage(valueMsg);
-                }
-            } else {
-                mStatusTextView.setText("Please push the connect button");
             }
         }
     }
@@ -581,9 +452,7 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             int action = msg.what;
             String msgStr = (String) msg.obj;
             if (action == VIEW_INPUT) {
-                mInputTextView.setText("　　" + msgStr);
             } else if (action == VIEW_STATUS) {
-                mStatusTextView.setText(msgStr);
             }
         }
     };
@@ -601,7 +470,6 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             if (results.size() > 0) {
                 // 認識結果候補で一番有力なものを表示
-                txvRec.setText(results.get(0));
                 // checkCharacterに値を渡す
                 //checkResult.resultRec = results.get(0);
                 result_voce = results.get(0);

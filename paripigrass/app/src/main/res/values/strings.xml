@@ -7,4 +7,5 @@
     <string name="twitter_consumer_key">JWHcf7lTNVY9EtVBlTFoI5D02</string>
     <string name="twitter_consumer_secret">OU3rTFzo74q09uADxGUIGHhIaSZ2g1Sk004oZiP7MEal7sznwO</string>
     <string name="twitter_callback_url">ustrgm://twitter</string>
+    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
 </resources>
