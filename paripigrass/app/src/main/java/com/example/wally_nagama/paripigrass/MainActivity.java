@@ -581,7 +581,16 @@ public class MainActivity extends AppCompatActivity implements Runnable, View.On
             int action = msg.what;
             String msgStr = (String) msg.obj;
             if (action == VIEW_INPUT) {
-                mInputTextView.setText("　　" + msgStr);
+                //mInputTextView.setText("　　" + msgStr);
+                //シリアル通信で文字列を受信するとここにとんでくるぽい
+                Log.d("get str", "aa");
+                if(msgStr.indexOf("anpai") >= 0){
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putInt(NKANAPI, preferences.getInt(NKANAPI, 0) + 1);
+                    editor.apply();
+                    Log.d("get str", "tweet!!!");
+                    tweet.tweet();
+                }
             } else if (action == VIEW_STATUS) {
                 mStatusTextView.setText(msgStr);
             }

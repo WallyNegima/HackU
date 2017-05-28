@@ -3,6 +3,7 @@ package com.example.wally_nagama.paripigrass;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -13,6 +14,8 @@ import com.google.firebase.database.Transaction;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Random;
+
+import twitter4j.Trend;
 
 import static com.example.wally_nagama.paripigrass.ReConnectBluetooth.VIEW_STATUS;
 
@@ -54,12 +57,14 @@ public class Roulette {
             if (dataSnapshot.child("light_now").child("id").getValue(int.class) == user.userId){
                 count = dataSnapshot.child("light_now").child("count").getValue(int.class);
 //                                    TODO::ピカピカ〜
+                Log.d("roulette", "59 led on!!");
                 sendBtCommand(color2string(now_color));
 //                                    countが0やったら終了
                     if (count > 0) {
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
+                                sendBtCommand("ledoff");
                                 dr.child("Roulette").child("light_now").runTransaction(new Transaction.Handler() {
                                     @Override
                                     public Transaction.Result doTransaction(MutableData mutableData) {
@@ -70,14 +75,16 @@ public class Roulette {
                                     @Override
                                     public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
         //                                                      TODO   LED消す処理
-                                        sendBtCommand("ledoff");
+                                        Log.d("roulette", "75 led off!!!");
+                                        //sendBtCommand("ledoff");
                                     }
                                 });
                                 dr.child("Roulette").child("light_now").child("count").setValue(count - 1);
                             }
-                        }, 100);
+                        },500 );
                     } else {
         //                                        TODO::LED色変える
+                        Log.d("roulette", "84 led on!!");
                         sendBtCommand(color2string((now_color+1)%8+1));
 
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
