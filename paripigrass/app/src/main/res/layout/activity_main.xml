@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:ads="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,54 +11,79 @@
         android:id="@+id/ScrollView01"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:background="@color/common_google_signin_btn_text_dark_default"
+        android:background="@color/common_google_signin_btn_text_dark_disabled"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="27dp">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             tools:layout_editor_absoluteX="0dp"
             tools:layout_editor_absoluteY="100dp">
 
-
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
+                android:layout_height="wrap_content"
+                >
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    >
+                    <EditText
+                        android:id="@+id/roomNumber"
+                        android:layout_width="400px"
+                        android:layout_height="wrap_content"
+                        android:digits="1234567890"
+                        android:hint="roomNumber"
+                        android:inputType="number" />
+                    <EditText
+                        android:id="@+id/userName"
+                        android:layout_width="400px"
+                        android:layout_height="wrap_content"
+                        android:hint="username" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    >
+                <Button
+                    android:id="@+id/userCreate"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_background"
+                    android:layout_alignParentBottom="true"
+                    android:text="join room" />
+                </LinearLayout>
 
             </LinearLayout>
 
-            <EditText
-                android:id="@+id/roomNumber"
-                android:layout_width="400px"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:digits="1234567890"
-                android:hint="roomNumber"
-                android:inputType="number" />
+                android:layout_marginTop="60px"
+                android:layout_gravity="center"
+                >
+                <Button
+                    android:id="@+id/btdevice"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_background"
+                    android:text="接続する機器を選ぶ" />
 
-            <EditText
-                android:id="@+id/userName"
-                android:layout_width="400px"
-                android:layout_height="wrap_content"
-                android:hint="username" />
+                <Button
+                    android:id="@+id/connectButton"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="1px"
+                    android:background="@drawable/button_background"
+                    android:text="Connect" />
 
-            <Button
-                android:id="@+id/userCreate"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@color/common_google_signin_btn_text_dark_disabled"
-                android:text="join room" />
-
-            <Button
-                android:id="@+id/btdevice"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@color/common_google_signin_btn_text_dark_disabled"
-                android:text="接続する機器を選ぶ" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/btdevicename"
@@ -66,37 +91,34 @@
                 android:layout_height="match_parent"
                 android:text="接続する機器" />
 
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/bt_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_editor_absoluteY="8dp" />
+
+
+
+
+            <LinearLayout
+                android:layout_width="128dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="20px"
                 android:orientation="vertical"
                 tools:layout_editor_absoluteX="0dp"
                 tools:layout_editor_absoluteY="0dp">
 
-                <TextView
-                    android:id="@+id/bt_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:layout_editor_absoluteX="0dp"
-                    tools:layout_editor_absoluteY="8dp" />
-
-
-                <Button
-                    android:id="@+id/connectButton"
-                    style="@style/Widget.AppCompat.Button.Borderless"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@color/common_google_signin_btn_text_dark_disabled"
-                    android:text="Connect" />
 
 
                 <Button
                     android:id="@+id/amin_recog"
                     style="@style/Widget.AppCompat.Button.Borderless"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/common_google_signin_btn_text_dark_disabled"
+                    android:background="@drawable/button_background"
+                    android:layout_marginTop="20px"
+                    android:layout_marginBottom="20px"
                     android:text="音声認識" />
 
                 <Button
@@ -104,7 +126,7 @@
                     style="@style/Widget.AppCompat.Button.Borderless"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@color/common_google_signin_btn_text_dark_disabled"
+                    android:background="@drawable/button_background"
                     android:text="twitter" />
 
             </LinearLayout>
@@ -115,6 +137,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
+                android:layout_gravity="center_horizontal"
                 ads:adSize="MEDIUM_RECTANGLE"
                 ads:adUnitId="@string/banner_ad_unit_id"
                 tools:layout_editor_absoluteX="16dp"
